@@ -9,15 +9,21 @@ export function CyberFrame({
   children,
   contentClassName = "",
   fullWidth = false,
+  fitViewport = false,
 }: {
   children: ReactNode
   contentClassName?: string
   fullWidth?: boolean
+  /** Ajusta el marco a la altura exacta del viewport (sin scroll). */
+  fitViewport?: boolean
 }) {
   const widthClass = fullWidth ? "max-w-none" : "max-w-3xl"
+  // Con fitViewport el marco mide exactamente la pantalla y recorta cualquier
+  // desborde; el contenido interior debe encoger (flex + min-h-0) para entrar.
+  const heightClass = fitViewport ? "h-screen py-4" : "min-h-screen py-10"
 
   return (
-    <main className="scanlines relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-background px-4 py-10">
+    <main className={`scanlines relative flex flex-col items-center justify-center overflow-hidden bg-background px-4 ${heightClass}`}>
       {/* Imagen de fondo */}
       <div
         aria-hidden="true"
@@ -31,7 +37,7 @@ export function CyberFrame({
       />
       {/* Contenido */}
       <div
-        className={`relative z-10 flex w-full flex-col items-center ${widthClass} ${contentClassName}`}
+        className={`relative z-10 flex w-full flex-col items-center ${widthClass} ${fitViewport ? "h-full min-h-0" : ""} ${contentClassName}`}
       >
         {children}
       </div>

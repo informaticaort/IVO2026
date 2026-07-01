@@ -1,60 +1,59 @@
 import Link from "next/link"
+import Image from "next/image"
 import type { ReactNode } from "react"
-
-import { CyberFrame } from "./cyber-frame"
 
 type LabGamePageProps = {
   acronym: string
-  title: string
-  description: string
-  accentClassName: string
+  // Se siguen aceptando para no romper las páginas existentes, aunque ahora
+  // la vista muestre únicamente la imagen del laboratorio.
+  title?: string
+  description?: string
+  accentClassName?: string
   children?: ReactNode
+  imageSrc?: string
+  imageAlt?: string
 }
 
 export function LabGamePage({
   acronym,
-  title,
-  description,
-  accentClassName,
   children,
+  imageSrc,
+  imageAlt,
 }: LabGamePageProps) {
+  const imageSrcByAcronym: Record<string, string> = {
+    AMI: "/images/AmiPixelArt.png",
+    CEO: "/images/CeoPixelArt.png",
+    HMP: "/images/HmpPixelArt.png",
+    LUM: "/images/LumPixelArt.png",
+  }
+
+  const resolvedImageSrc = imageSrc ?? imageSrcByAcronym[acronym]
+  const resolvedImageAlt = imageAlt ?? `Pixel art del laboratorio ${acronym}`
+
   return (
-    <CyberFrame>
-      <div className="flex w-full max-w-2xl flex-col items-center gap-6 text-center sm:gap-8">
-        <div className={`rounded-3xl border border-current/35 bg-[oklch(0.11_0.04_264/0.88)] px-6 py-4 shadow-[0_0_32px_color-mix(in_oklch,currentColor_20%,transparent)] ${accentClassName}`}>
-          <p className="font-pixel text-xs uppercase tracking-[0.35em] opacity-80">
-            Laboratorio {acronym}
-          </p>
-          <h1 className="mt-3 font-pixel text-3xl leading-tight sm:text-4xl">
-            {title}
-          </h1>
+    <main className="scanlines relative flex h-screen w-screen items-center justify-center overflow-hidden bg-background p-4 sm:p-6">
+      {resolvedImageSrc ? (
+        <div className="relative rounded-[1.5rem] border-4 border-[var(--neon-cyan)]/70 bg-[oklch(0.09_0.04_264/0.6)] p-2 shadow-[0_0_35px_color-mix(in_oklch,var(--neon-cyan)_35%,transparent)] sm:p-3">
+          <Image
+            src={resolvedImageSrc}
+            alt={resolvedImageAlt}
+            width={960}
+            height={540}
+            priority
+            className="max-h-[calc(100vh-3rem)] max-w-full rounded-[1rem] object-contain"
+          />
         </div>
+      ) : null}
 
-        <p className="max-w-xl font-mono text-sm leading-relaxed text-muted-foreground sm:text-base">
-          {description}
-        </p>
+      {children}
 
-        <div className="w-full rounded-[1.5rem] border border-[var(--neon-cyan)]/30 bg-[oklch(0.09_0.04_264/0.72)] p-5 text-left shadow-[0_0_30px_color-mix(in_oklch,var(--neon-cyan)_15%,transparent)] sm:p-6">
-          {children ?? (
-            <>
-              <p className="font-pixel text-sm neon-green">Próxima pantalla</p>
-              <p className="mt-3 font-mono text-sm leading-relaxed text-foreground/90">
-                Acá podés construir el juego propio de este laboratorio.
-              </p>
-            </>
-          )}
-        </div>
-
-        <div className="flex flex-wrap justify-center gap-3">
-          <Link
-            href="/plano"
-            className="rounded-md border-2 border-[var(--neon-cyan)]/60 bg-[oklch(0.14_0.04_264/0.7)] px-5 py-3 font-pixel text-xs text-[var(--neon-cyan)] transition-colors hover:bg-[var(--neon-cyan)] hover:text-background sm:text-sm"
-          >
-            
-            Volver al plano
-          </Link>
-        </div>
-      </div>
-    </CyberFrame>
+      {/* Volver al plano: botón flotante para no quedar atrapado */}
+      <Link
+        href="/plano"
+        className="absolute left-4 top-4 z-10 rounded-md border-2 border-[var(--neon-cyan)]/60 bg-[oklch(0.14_0.04_264/0.7)] px-4 py-2 font-pixel text-xs text-[var(--neon-cyan)] transition-colors hover:bg-[var(--neon-cyan)] hover:text-background"
+      >
+        Volver
+      </Link>
+    </main>
   )
 }

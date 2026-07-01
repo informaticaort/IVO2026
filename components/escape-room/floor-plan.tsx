@@ -9,7 +9,18 @@ type Room = {
   ariaLabel?: string
   /** "key" = laboratorio importante, "minor" = sala etiquetada secundaria */
   tone?: "key" | "minor"
+  /** Color de acento (borde/relleno/glow) para laboratorios clave. */
+  color?: string
   vertical?: boolean
+}
+
+/** Color de acento por laboratorio clave (compartido con la leyenda). */
+export const LAB_COLORS: Record<string, string> = {
+  AMI: "oklch(0.9 0.19 100)", // amarillo
+  HMP: "oklch(0.62 0.25 300)", // violeta
+  CEO: "oklch(0.98 0.01 240)", // blanco
+  LUM: "var(--neon-red)", // rojo
+  CIDI: "var(--neon-green)", // verde
 }
 
 const PLAN_SCALE = 2.2
@@ -79,6 +90,7 @@ const LABELED_ROOMS: Room[] = [
     h: 150,
     label: "AMI",
     tone: "key",
+    color: LAB_COLORS.AMI,
     href: "/ami-game",
     ariaLabel: "Abrir juego de AMI",
   },
@@ -89,6 +101,7 @@ const LABELED_ROOMS: Room[] = [
     h: 150,
     label: "HMP",
     tone: "key",
+    color: LAB_COLORS.HMP,
     href: "/hmp-game",
     ariaLabel: "Abrir juego de HMP",
   },
@@ -99,6 +112,7 @@ const LABELED_ROOMS: Room[] = [
     h: 200,
     label: "CIDI",
     tone: "key",
+    color: LAB_COLORS.CIDI,
     href: "/cidi-game",
     ariaLabel: "Abrir juego de CIDI",
   },
@@ -109,6 +123,7 @@ const LABELED_ROOMS: Room[] = [
     h: 250,
     label: "CEO",
     tone: "key",
+    color: LAB_COLORS.CEO,
     href: "/ceo-game",
     ariaLabel: "Abrir juego de CEO",
   },
@@ -119,6 +134,7 @@ const LABELED_ROOMS: Room[] = [
     h: 150,
     label: "LUM",
     tone: "key",
+    color: LAB_COLORS.LUM,
     href: "/lum-game",
     ariaLabel: "Abrir juego de LUM",
   },
@@ -148,10 +164,11 @@ function LabeledRoom({ room }: { room: Room }) {
   const isKey = room.tone === "key"
   const cx = room.x + room.w / 2
   const cy = room.y + room.h / 2
-  const stroke = isKey ? "var(--neon-green)" : "var(--neon-cyan)"
+  const accent = room.color ?? (isKey ? "var(--neon-green)" : "var(--neon-cyan)")
+  const stroke = accent
   const fill = isKey
-    ? "color-mix(in oklch, var(--neon-green) 16%, transparent)"
-    : "color-mix(in oklch, var(--neon-cyan) 12%, transparent)"
+    ? `color-mix(in oklch, ${accent} 16%, transparent)`
+    : `color-mix(in oklch, ${accent} 12%, transparent)`
 
   // Las salas clave usan la fuente pixelada grande; las secundarias usan
   // mono pequeña y, si el nombre es largo, lo repartimos en varias líneas.
@@ -160,7 +177,13 @@ function LabeledRoom({ room }: { room: Room }) {
   const startY = cy - ((lines.length - 1) * lineHeight) / 2
 
   const content = (
-    <g filter={isKey ? "url(#labGlow)" : undefined}>
+    <g
+      style={
+        isKey
+          ? { filter: `drop-shadow(0 0 6px color-mix(in oklch, ${accent} 65%, transparent))` }
+          : undefined
+      }
+    >
       <rect
         x={room.x}
         y={room.y}
@@ -234,18 +257,6 @@ export function FloorPlan() {
       aria-label="Plano del piso de laboratorios. Laboratorios destacados: CIDI, AMI, HMP, CEO y LUM."
       className="block h-full w-full max-w-none"
     >
-      <defs>
-        <filter id="labGlow" x="-20%" y="-20%" width="140%" height="140%">
-          <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="blur" />
-          <feFlood floodColor="var(--neon-green)" floodOpacity="0.55" />
-          <feComposite in2="blur" operator="in" result="glow" />
-          <feMerge>
-            <feMergeNode in="glow" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
-      </defs>
-
       {SCALED_PLAIN_ROOMS.map((room, i) => (
         <PlainRoom key={`plain-${i}`} {...room} />
       ))}
