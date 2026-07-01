@@ -1,12 +1,5 @@
-import { LabGamePage } from "@/components/escape-room/lab-game-page"
+import { HmpConversation } from "@/components/escape-room/hmp-conversation"
 
 export default function HmpGamePage() {
-  return (
-    <LabGamePage
-      acronym="HMP"
-      title="Hardware y Procesamiento"
-      description="Entraste al laboratorio HMP. Esta pantalla queda lista para su mini juego propio."
-      accentClassName="text-[var(--neon-cyan)]"
-    />
-  )
+  return <HmpConversation />
 }

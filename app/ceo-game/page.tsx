@@ -1,12 +1,5 @@
-import { LabGamePage } from "@/components/escape-room/lab-game-page"
+import { CeoConversation } from "@/components/escape-room/ceo-conversation"
 
 export default function CeoGamePage() {
-  return (
-    <LabGamePage
-      acronym="CEO"
-      title="Centro de Exploración Operativa"
-      description="Entraste al laboratorio CEO. Este espacio queda preparado para su desafío particular."
-      accentClassName="text-[var(--neon-pink)]"
-    />
-  )
+  return <CeoConversation />
 }

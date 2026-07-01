@@ -1,12 +1,5 @@
-import { LabGamePage } from "@/components/escape-room/lab-game-page"
+import { LumConversation } from "@/components/escape-room/lum-conversation"
 
 export default function LumGamePage() {
-  return (
-    <LabGamePage
-      acronym="LUM"
-      title="Laboratorio de Última Milla"
-      description="Entraste al laboratorio LUM. Acá va a vivir el tramo final o desafío especial de este ámbito."
-      accentClassName="text-[var(--neon-red)]"
-    />
-  )
+  return <LumConversation />
 }
