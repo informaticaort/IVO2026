@@ -1,6 +1,7 @@
 "use client"
 
 import { LabConversation, type LabConversationConfig } from "./lab-conversation"
+import { AmiEquationsGame } from "./ami-equations-game"
 
 /* -------------------------------------------------------------------------
  * CONVERSACIÓN DEL ÁMBITO AMI — Sospechosa: MICA
@@ -11,7 +12,17 @@ const AMI_CONFIG: LabConversationConfig = {
   greeting:
     "Hola, ¿cómo estás? Soy Mica. Preguntame lo que necesites, con tranquilidad… quiero que esto se resuelva bien.",
   closingSpeech:
-    "Bien. Cuando quieras empezamos con el desafío de encriptación… observá con calma los símbolos y patrones.",
+    "Bien. Esa computadora quedó bloqueada por la IA… resuelvan las ecuaciones con calma y conviertan cada número en su letra.",
+  // Monitor de la segunda fila (el de la silla azul, con teclado y mouse):
+  // se pone azul cuando terminan las preguntas. El clip-path sigue la leve
+  // perspectiva de la pantalla para que no sea un rectángulo exacto.
+  gameHotspot: {
+    left: "57.48%",
+    top: "49.79%",
+    width: "4.04%",
+    height: "5.63%",
+    clipPath: "polygon(0% 0%, 100% 5.7%, 100% 100%, 0% 88.7%)",
+  },
   questions: [
     {
       id: "q1",
@@ -66,5 +77,10 @@ const AMI_CONFIG: LabConversationConfig = {
 }
 
 export function AmiConversation() {
-  return <LabConversation config={AMI_CONFIG} />
+  return (
+    <LabConversation
+      config={AMI_CONFIG}
+      renderGame={({ exit }) => <AmiEquationsGame onExit={exit} />}
+    />
+  )
 }

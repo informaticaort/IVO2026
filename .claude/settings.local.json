@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p \"/c/Users/FEDERI~1.ABD/AppData/Local/Temp/claude/c--Users-federico-abdo-Desktop-ivo-IVO2026/3c66a82e-fd9c-4610-b11c-8441d37857c6/scratchpad\" && python -c \" *)"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\FEDERI~1.ABD\\AppData\\Local\\Temp\\claude\\c--Users-federico-abdo-Desktop-ivo-IVO2026\\3c66a82e-fd9c-4610-b11c-8441d37857c6"
+    ]
+  }
+}

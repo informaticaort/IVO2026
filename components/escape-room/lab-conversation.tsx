@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, type ReactNode } from "react"
 import Image from "next/image"
 import Link from "next/link"
 
@@ -19,6 +19,20 @@ export type LabConversationConfig = {
   questions: LabQuestion[]
   /** Frase de cierre al iniciar el juego. */
   closingSpeech: string
+  /**
+   * Zona clickeable sobre la imagen (en % relativos a la imagen) que inicia
+   * el juego. Si se define, reemplaza al botón "Iniciar juego": al terminar
+   * las preguntas la zona se "enciende" como pantalla azul y se puede clickear.
+   * `clipPath` permite ajustar la forma a la pantalla (perspectiva) en vez de
+   * un rectángulo exacto.
+   */
+  gameHotspot?: {
+    left: string
+    top: string
+    width: string
+    height: string
+    clipPath?: string
+  }
 }
 
 const LETTERS = ["A", "B", "C", "D", "E", "F", "G", "H"]
@@ -30,8 +44,16 @@ function imageForAcronym(acronym: string) {
   return `/images/${name}PixelArt.png`
 }
 
-export function LabConversation({ config }: { config: LabConversationConfig }) {
-  const { acronym, speaker, greeting, questions, closingSpeech } = config
+export function LabConversation({
+  config,
+  renderGame,
+}: {
+  config: LabConversationConfig
+  /** Juego que se muestra al iniciar; recibe `exit` para volver a la charla. */
+  renderGame?: (opts: { exit: () => void }) => ReactNode
+}) {
+  const { acronym, speaker, greeting, questions, closingSpeech, gameHotspot } =
+    config
 
   const image = imageForAcronym(acronym)
   const color = LAB_COLORS[acronym] ?? "var(--neon-cyan)"
@@ -71,6 +93,9 @@ export function LabConversation({ config }: { config: LabConversationConfig }) {
 
   const currentSpeech = started ? closingSpeech : speech
 
+  // Con hotspot: al terminar las preguntas se enciende la pantalla azul.
+  const hotspotActive = allAsked && !!gameHotspot && !started
+
   return (
     <main className="scanlines relative flex h-screen w-screen flex-col overflow-hidden bg-background p-3 sm:p-4">
       {/* Fondo de la escena */}
@@ -101,14 +126,45 @@ export function LabConversation({ config }: { config: LabConversationConfig }) {
             boxShadow: `0 0 35px color-mix(in oklch, ${color} 35%, transparent)`,
           }}
         >
-          <Image
-            src={image}
-            alt={`Retrato de ${speaker}`}
-            width={960}
-            height={960}
-            priority
-            className="max-h-[86vh] w-auto rounded-[1rem] object-contain"
-          />
+          <div className="relative">
+            <Image
+              src={image}
+              alt={`Retrato de ${speaker}`}
+              width={960}
+              height={960}
+              priority
+              className="max-h-[86vh] w-auto rounded-[1rem] object-contain"
+            />
+
+            {/* Pantalla azul clickeable que reemplaza al botón "Iniciar juego".
+                El clip-path recorta la forma real de la pantalla; el glow se
+                aplica con drop-shadow en el botón para que siga esa forma. */}
+            {hotspotActive ? (
+              <button
+                type="button"
+                onClick={() => setStarted(true)}
+                aria-label="Computadora con pantalla azul: iniciar el juego"
+                title="Esta computadora se ve extraña…"
+                className="absolute z-30 cursor-pointer"
+                style={{
+                  left: gameHotspot.left,
+                  top: gameHotspot.top,
+                  width: gameHotspot.width,
+                  height: gameHotspot.height,
+                  filter: "drop-shadow(0 0 10px #2f6bff)",
+                }}
+              >
+                <span
+                  className="flex size-full animate-pulse flex-col items-start gap-0.5 bg-[linear-gradient(135deg,#2a5cff_0%,#0a36e8_45%,#0629b8_100%)] p-1 font-pixel text-[0.45rem] leading-none text-white/90"
+                  style={{ clipPath: gameHotspot.clipPath }}
+                >
+                  :(
+                  <span className="h-px w-2/3 bg-white/40" />
+                  <span className="h-px w-1/2 bg-white/30" />
+                </span>
+              </button>
+            ) : null}
+          </div>
 
           {/* Overlay de diálogo + opciones, pegado al fondo de la imagen.
               Compacto y semitransparente para tapar lo menos posible. */}
@@ -148,10 +204,12 @@ export function LabConversation({ config }: { config: LabConversationConfig }) {
                 <div className="flex items-center justify-between px-1 pb-1">
                   <p className="font-mono text-[0.6rem] text-muted-foreground">
                     {allAsked
-                      ? "Ya preguntaste todo. Podés iniciar el juego."
+                      ? gameHotspot
+                        ? "Ya preguntaste todo. Una de las computadoras se puso azul… hacé clic en ella."
+                        : "Ya preguntaste todo. Podés iniciar el juego."
                       : `Elegí una pregunta · faltan ${remaining} para iniciar`}
                   </p>
-                  {allAsked ? (
+                  {allAsked && !gameHotspot ? (
                     <button
                       type="button"
                       onClick={() => setStarted(true)}
@@ -182,6 +240,11 @@ export function LabConversation({ config }: { config: LabConversationConfig }) {
           </div>
         </div>
       </div>
+
+      {/* Juego del ámbito (overlay a pantalla completa) */}
+      {started && renderGame
+        ? renderGame({ exit: () => setStarted(false) })
+        : null}
     </main>
   )
 }
