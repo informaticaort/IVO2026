@@ -3,11 +3,11 @@
 import { LabConversation, type LabConversationConfig } from "./lab-conversation"
 
 /* -------------------------------------------------------------------------
- * CONVERSACIÓN DEL ÁMBITO CIDI — Sospechosa: BELEN (Líder del proyecto)
+ * CONVERSACIÓN DEL ÁMBITO CIDI — Sospechosa: Avril (Líder del proyecto)
  * ---------------------------------------------------------------------- */
 const CIDI_CONFIG: LabConversationConfig = {
   acronym: "CIDI",
-  speaker: "Belen",
+  speaker: "Avril",
   greeting:
     "¡Perdón la demora! No me sonó el despertador. ¿Qué es todo este caos? ¿Por qué están las alarmas en rojo?",
   closingSpeech:
@@ -37,14 +37,14 @@ const CIDI_CONFIG: LabConversationConfig = {
     {
       id: "q4",
       question:
-        "Leo nos contó que tuvieron una discusión durísima antes del colapso. ¿Por qué nos lo ocultaste?",
+        "Belén nos contó que tuvieron una discusión durísima antes del colapso. ¿Por qué nos lo ocultaste?",
       answer:
         "No se los oculté, ¡recién llego! Estaba insoportable criticando la seguridad y me dijo que si algo fallaba sería mi culpa. Me dio tanto dolor de cabeza que dejé mis cosas en la mesa y me fui a tomar un café. Ahí fue cuando me sacaron la credencial.",
     },
     {
       id: "q5",
       question:
-        "Ya hablamos con Santi, Valen, Mica y Leo. Con todo lo que sabés de ellos, ¿quién creés que es el responsable?",
+        "Ya hablamos con Santi, Valen, Mica y Belén. Con todo lo que sabés de ellos, ¿quién creés que es el responsable?",
       answer:
         "Escondió el código en las cuatro áreas, así que conoce las debilidades del sistema desde adentro y planeó esto con mucha frialdad. Cualquiera que tuviera acceso a la arquitectura y una razón para sabotearnos pudo ser. No descarten a nadie por su personalidad.",
     },
