@@ -43,7 +43,7 @@ const HMP_CONFIG: LabConversationConfig = {
       question: "¿Viste algo raro antes de irte?",
       answer:
         "Sí. O sea, creo que sí. " +
-        "Vi a Leo discutiendo con Alex por permisos de acceso. Leo decía que el sistema estaba mal diseñado y que si algo fallaba, iba a ser culpa de Alex. " +
+        "Vi a Belen discutiendo con Alex por permisos de acceso. Belen decía que el sistema estaba mal diseñado y que si algo fallaba, iba a ser culpa de Alex. " +
         "Después vi a Mica intentando calmarlos. Le dijo “por favor” a la IA cuando se trabó la pantalla. No sé si cuenta como raro porque Mica hace eso siempre.",
     },
     {

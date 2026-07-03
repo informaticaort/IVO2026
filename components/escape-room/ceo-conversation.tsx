@@ -3,19 +3,19 @@
 import { LabConversation, type LabConversationConfig } from "./lab-conversation"
 
 /* -------------------------------------------------------------------------
- * CONVERSACIÓN DEL ÁMBITO CEO — Sospechoso: LEO (Programación)
+ * CONVERSACIÓN DEL ÁMBITO CEO — Sospechosa: BELEN (Programación)
  * ---------------------------------------------------------------------- */
 const CEO_CONFIG: LabConversationConfig = {
   acronym: "CEO",
-  speaker: "Leo",
+  speaker: "Belen",
   greeting:
-    "Soy Leo. Programación. Dale, preguntá lo que quieras… total ya decidieron que soy sospechoso antes de escucharme.",
+    "Soy Belen. Programación. Dale, preguntá lo que quieras… total ya decidieron que soy sospechosa antes de escucharme.",
   closingSpeech:
     "Bien. Suficiente charla. El desafío de programación empieza ahora… a ver si son tan rápidos como dicen.",
   questions: [
     {
       id: "q1",
-      question: "Leo, ¿dónde estabas a las 03:00 AM?",
+      question: "Belen, ¿dónde estabas a las 03:00 AM?",
       answer:
         "En mi casa. Durmiendo, claramente. " +
         "Aunque si me preguntan, el verdadero problema no es dónde estaba yo, sino por qué el sistema permitió que una credencial como la de Alex pudiera ejecutar algo tan crítico sin una segunda validación. " +

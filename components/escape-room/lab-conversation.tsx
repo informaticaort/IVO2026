@@ -120,7 +120,7 @@ export function LabConversation({
       <div className="relative z-10 flex h-full w-full items-center justify-center">
         {/* Escenario: la imagen queda fija y el diálogo va superpuesto adentro */}
         <div
-          className="relative flex max-h-full rounded-[1.25rem] border-4 bg-[oklch(0.09_0.04_264/0.55)] p-2"
+          className="relative flex max-h-full rounded-[1.25rem] border-4 bg-[oklch(0.09_0.04_264/0.55)] p-3 sm:p-4"
           style={{
             borderColor: `color-mix(in oklch, ${color} 75%, transparent)`,
             boxShadow: `0 0 35px color-mix(in oklch, ${color} 35%, transparent)`,
@@ -133,7 +133,7 @@ export function LabConversation({
               width={960}
               height={960}
               priority
-              className="max-h-[86vh] w-auto rounded-[1rem] object-contain"
+              className="max-h-[92vh] w-auto rounded-[1rem] object-contain"
             />
 
             {/* Pantalla azul clickeable que reemplaza al botón "Iniciar juego".
@@ -168,12 +168,12 @@ export function LabConversation({
 
           {/* Overlay de diálogo + opciones, pegado al fondo de la imagen.
               Compacto y semitransparente para tapar lo menos posible. */}
-          <div className="absolute inset-x-2 bottom-2 flex max-h-[55%] flex-col justify-end gap-1.5">
+          <div className="absolute inset-x-2 bottom-2 flex max-h-[60%] flex-col justify-end gap-2">
             {/* Diálogo del personaje */}
-            <div className="flex items-start gap-2 rounded-xl border border-[var(--neon-cyan)]/35 bg-[oklch(0.08_0.04_264/0.72)] px-3 py-2 backdrop-blur-sm">
+            <div className="flex items-start gap-2 rounded-xl border border-[var(--neon-cyan)]/35 bg-[oklch(0.08_0.04_264/0.72)] px-4 py-3 backdrop-blur-sm">
               {/* Retrato del jugador */}
               <div className="hidden shrink-0 sm:block">
-                <div className="size-11 overflow-hidden rounded-full border-2 border-[var(--neon-cyan)]/70 bg-[oklch(0.12_0.05_263)]">
+                <div className="size-12 overflow-hidden rounded-full border-2 border-[var(--neon-cyan)]/70 bg-[oklch(0.12_0.05_263)]">
                   {player.avatar ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
@@ -182,17 +182,17 @@ export function LabConversation({
                       className="size-full object-cover"
                     />
                   ) : (
-                    <div className="flex size-full items-center justify-center font-pixel text-base neon-cyan">
+                    <div className="flex size-full items-center justify-center font-pixel text-lg neon-cyan">
                       {player.name.charAt(0).toUpperCase()}
                     </div>
                   )}
                 </div>
               </div>
               <div className="min-w-0 flex-1">
-                <p className="mb-0.5 font-pixel text-[0.55rem] uppercase tracking-[0.25em] neon-cyan">
+                <p className="mb-1 font-pixel text-[0.7rem] uppercase tracking-[0.25em] neon-cyan">
                   {speaker}
                 </p>
-                <p className="whitespace-pre-line font-mono text-[0.75rem] leading-snug text-foreground/95">
+                <p className="whitespace-pre-line font-mono text-[0.9rem] leading-snug text-foreground/95 sm:text-[0.95rem]">
                   {currentSpeech}
                 </p>
               </div>
@@ -200,9 +200,9 @@ export function LabConversation({
 
             {/* Opciones (aparecen debajo del diálogo), en 2 columnas */}
             {!started ? (
-              <div className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-[var(--neon-cyan)]/30 bg-[oklch(0.08_0.04_264/0.72)] px-2 py-1.5 backdrop-blur-sm">
-                <div className="flex items-center justify-between px-1 pb-1">
-                  <p className="font-mono text-[0.6rem] text-muted-foreground">
+              <div className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-[var(--neon-cyan)]/30 bg-[oklch(0.08_0.04_264/0.72)] px-3 py-2 backdrop-blur-sm">
+                <div className="flex items-center justify-between px-1 pb-2">
+                  <p className="font-mono text-[0.72rem] text-muted-foreground">
                     {allAsked
                       ? gameHotspot
                         ? "Ya preguntaste todo. Una de las computadoras se puso azul… hacé clic en ella."
@@ -213,21 +213,21 @@ export function LabConversation({
                     <button
                       type="button"
                       onClick={() => setStarted(true)}
-                      className="shrink-0 rounded-md border-2 border-[var(--neon-green)]/70 bg-[oklch(0.14_0.04_264/0.7)] px-3 py-1 font-pixel text-[0.6rem] text-[var(--neon-green)] transition-colors hover:bg-[var(--neon-green)] hover:text-background"
+                      className="shrink-0 rounded-md border-2 border-[var(--neon-green)]/70 bg-[oklch(0.14_0.04_264/0.7)] px-3 py-1.5 font-pixel text-[0.68rem] text-[var(--neon-green)] transition-colors hover:bg-[var(--neon-green)] hover:text-background"
                     >
                       Iniciar juego
                     </button>
                   ) : null}
                 </div>
-                <ul className="grid min-h-0 grid-cols-1 gap-x-3 gap-y-0.5 overflow-y-auto sm:grid-cols-2">
+                <ul className="grid min-h-0 grid-cols-1 gap-x-3 gap-y-1 overflow-y-auto sm:grid-cols-2">
                   {visibleQuestions.map((q, i) => (
                     <li key={q.id}>
                       <button
                         type="button"
                         onClick={() => handleAsk(q)}
-                        className="flex w-full items-start gap-2 rounded-lg px-2 py-1 text-left font-mono text-[0.75rem] leading-snug text-foreground/90 transition-colors hover:bg-[color-mix(in_oklch,var(--neon-cyan)_16%,transparent)]"
+                        className="flex w-full items-start gap-2 rounded-lg px-3 py-2 text-left font-mono text-[0.98rem] leading-snug text-foreground/90 transition-colors hover:bg-[color-mix(in_oklch,var(--neon-cyan)_16%,transparent)] sm:text-[1.02rem]"
                       >
-                        <span className="mt-px font-pixel text-xs neon-cyan">
+                        <span className="mt-px font-pixel text-sm neon-cyan">
                           {LETTERS[i]}
                         </span>
                         <span>{q.question}</span>

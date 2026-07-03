@@ -47,7 +47,7 @@ const LUM_CONFIG: LabConversationConfig = {
       id: "q5",
       question: "¿Notaste algo raro antes del sabotaje?",
       answer:
-        "Sí. Leo estaba insoportable. Más de lo normal. " +
+        "Sí. Belen estaba insoportable. Más de lo normal. " +
         "Cada vez que alguien corregía algo de su código, reaccionaba como si le hubieran insultado a un familiar. Decía que nadie entendía su lógica, que él ya lo había previsto, que si algo fallaba era porque los demás no sabían usarlo. " +
         "De hecho, cuando una persona cree que nunca se equivoca, es muy difícil que admita que rompió algo.",
     },
