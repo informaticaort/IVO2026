@@ -1,6 +1,7 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
 import { Geist, Geist_Mono, Press_Start_2P } from 'next/font/google'
+import { PresenceReporter } from '@/components/presence/presence-reporter'
 import './globals.css'
 
 const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] })
@@ -53,6 +54,7 @@ export default function RootLayout({
       className={`dark bg-background ${geistSans.variable} ${geistMono.variable} ${pressStart.variable}`}
     >
       <body className="font-sans antialiased">
+        <PresenceReporter />
         {children}
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>

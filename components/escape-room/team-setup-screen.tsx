@@ -3,6 +3,7 @@
 import type { ChangeEvent } from "react"
 import { useRef, useState } from "react"
 import { ImagePlus, Users } from "lucide-react"
+import { ensureAvatarUploaded, ensureGroupId } from "@/components/presence/use-group-id"
 import { CyberFrame } from "./cyber-frame"
 
 export type TeamData = {
@@ -33,6 +34,11 @@ export function TeamSetupScreen({
     if (!canContinue) return
     const teamData = { name: name.trim(), avatar }
     sessionStorage.setItem("escape-room-team", JSON.stringify(teamData))
+    // Fijamos el id único del grupo al registrarse, para que el monitoreo lo
+    // identifique de forma estable durante toda la sesión, y subimos la foto
+    // (comprimida) una vez. `force` re-sube si el equipo cambió la imagen.
+    const grupoId = ensureGroupId()
+    void ensureAvatarUploaded(grupoId, { force: true })
     onContinue(teamData)
   }
 
