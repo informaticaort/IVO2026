@@ -1,6 +1,7 @@
 "use client"
 
 import { LabConversation, type LabConversationConfig } from "./lab-conversation"
+import { LumDesignGame } from "./lum-design-game"
 
 /* -------------------------------------------------------------------------
  * CONVERSACIÓN DEL ÁMBITO LUM — Sospechoso: SANTI (Diseño / UX)
@@ -63,5 +64,10 @@ const LUM_CONFIG: LabConversationConfig = {
 }
 
 export function LumConversation() {
-  return <LabConversation config={LUM_CONFIG} />
+  return (
+    <LabConversation
+      config={LUM_CONFIG}
+      renderGame={({ exit }) => <LumDesignGame onExit={exit} />}
+    />
+  )
 }
