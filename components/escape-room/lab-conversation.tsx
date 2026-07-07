@@ -32,6 +32,18 @@ export type LabConversationConfig = {
     width: string
     height: string
     clipPath?: string
+    /**
+     * Vista previa opcional que reemplaza la pantalla azul genérica con
+     * ":(" por un recorte de otra imagen (p. ej. el escritorio real de ese
+     * ámbito), para que la "pantalla prendida" se vea acorde a lo que hay
+     * del otro lado. `backgroundSize`/`backgroundPosition` son los valores
+     * CSS para recortar la imagen completa a la zona deseada.
+     */
+    preview?: {
+      image: string
+      backgroundSize: string
+      backgroundPosition: string
+    }
   }
 }
 
@@ -154,14 +166,26 @@ export function LabConversation({
                   filter: "drop-shadow(0 0 10px #2f6bff)",
                 }}
               >
-                <span
-                  className="flex size-full animate-pulse flex-col items-start gap-0.5 bg-[linear-gradient(135deg,#2a5cff_0%,#0a36e8_45%,#0629b8_100%)] p-1 font-pixel text-[0.45rem] leading-none text-white/90"
-                  style={{ clipPath: gameHotspot.clipPath }}
-                >
-                  :(
-                  <span className="h-px w-2/3 bg-white/40" />
-                  <span className="h-px w-1/2 bg-white/30" />
-                </span>
+                {gameHotspot.preview ? (
+                  <span
+                    className="flex size-full animate-pulse"
+                    style={{
+                      clipPath: gameHotspot.clipPath,
+                      backgroundImage: `url(${gameHotspot.preview.image})`,
+                      backgroundSize: gameHotspot.preview.backgroundSize,
+                      backgroundPosition: gameHotspot.preview.backgroundPosition,
+                    }}
+                  />
+                ) : (
+                  <span
+                    className="flex size-full animate-pulse flex-col items-start gap-0.5 bg-[linear-gradient(135deg,#2a5cff_0%,#0a36e8_45%,#0629b8_100%)] p-1 font-pixel text-[0.45rem] leading-none text-white/90"
+                    style={{ clipPath: gameHotspot.clipPath }}
+                  >
+                    :(
+                    <span className="h-px w-2/3 bg-white/40" />
+                    <span className="h-px w-1/2 bg-white/30" />
+                  </span>
+                )}
               </button>
             ) : null}
           </div>
