@@ -13,6 +13,8 @@ const AMI_CONFIG: LabConversationConfig = {
     "Hola, ¿cómo estás? Soy Mica. Preguntame lo que necesites, con tranquilidad… quiero que esto se resuelva bien.",
   closingSpeech:
     "Bien. Esa computadora quedó bloqueada por la IA… resuelvan las ecuaciones con calma y conviertan cada número en su letra.",
+  // El juego se muestra dentro del recuadro (como las entrevistas), no fullscreen.
+  framedGame: true,
   // Monitor de la segunda fila (el de la silla azul, con teclado y mouse):
   // se pone azul cuando terminan las preguntas. El clip-path sigue la leve
   // perspectiva de la pantalla para que no sea un rectángulo exacto.

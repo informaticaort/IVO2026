@@ -45,21 +45,26 @@ export function AmiEquationsGame({ onExit }: { onExit?: () => void }) {
   }
 
   return (
-    <div className="scanlines fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-[#061a8f] p-4">
+    <div className="scanlines relative flex size-full flex-col gap-3 overflow-hidden rounded-[1rem] bg-[#061a8f] p-4 text-white sm:p-6">
       {/* Cerrar: vuelve a la conversación sin perder el avance del ámbito */}
       {onExit && !won ? (
-        <button
-          type="button"
-          onClick={onExit}
-          className="absolute right-4 top-4 z-10 rounded-md border-2 border-white/50 bg-[#04125e]/70 px-4 py-2 font-pixel text-xs text-white transition-colors hover:bg-white hover:text-[#061a8f]"
-        >
-          Salir
-        </button>
+        <div className="flex shrink-0 justify-end">
+          <button
+            type="button"
+            onClick={onExit}
+            className="rounded-md border-2 border-white/50 bg-[#04125e]/70 px-4 py-1.5 font-pixel text-xs text-white transition-colors hover:bg-white hover:text-[#061a8f]"
+          >
+            Salir
+          </button>
+        </div>
       ) : null}
 
+      {/* Zona con scroll interno que centra el contenido en la pantalla azul. */}
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        <div className="flex min-h-full flex-col justify-center">
       {won ? (
         /* ------------------------- PANTALLA DE VICTORIA ------------------------- */
-        <div className="flex w-full max-w-xl flex-col items-center gap-5 rounded-xl border-4 border-[var(--neon-green)]/70 bg-[oklch(0.1_0.05_264/0.9)] p-8 text-center shadow-[0_0_40px_color-mix(in_oklch,var(--neon-green)_40%,transparent)]">
+        <div className="mx-auto flex w-full max-w-xl flex-col items-center gap-5 rounded-xl border-4 border-[var(--neon-green)]/70 bg-[oklch(0.1_0.05_264/0.9)] p-8 text-center shadow-[0_0_40px_color-mix(in_oklch,var(--neon-green)_40%,transparent)]">
           <p className="font-pixel text-2xl text-[var(--neon-green)]">
             ACCESO CONCEDIDO
           </p>
@@ -77,7 +82,7 @@ export function AmiEquationsGame({ onExit }: { onExit?: () => void }) {
         </div>
       ) : (
         /* --------------------------- PANTALLA AZUL --------------------------- */
-        <div className="my-auto flex w-full max-w-2xl flex-col gap-4 text-white">
+        <div className="mx-auto flex w-full max-w-2xl flex-col gap-4 text-white">
           <div className="flex items-end gap-4">
             <span className="font-pixel text-5xl leading-none">:(</span>
             <div>
@@ -187,6 +192,8 @@ export function AmiEquationsGame({ onExit }: { onExit?: () => void }) {
           </form>
         </div>
       )}
+        </div>
+      </div>
     </div>
   )
 }

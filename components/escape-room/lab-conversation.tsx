@@ -45,6 +45,13 @@ export type LabConversationConfig = {
       backgroundPosition: string
     }
   }
+  /**
+   * Si es true, el juego se muestra DENTRO del mismo recuadro con borde y glow
+   * que el retrato (como en las entrevistas), en lugar de un overlay a pantalla
+   * completa. El componente del juego debe renderizarse como panel contenido
+   * (sin `fixed inset-0`).
+   */
+  framedGame?: boolean
 }
 
 const LETTERS = ["A", "B", "C", "D", "E", "F", "G", "H"]
@@ -64,8 +71,15 @@ export function LabConversation({
   /** Juego que se muestra al iniciar; recibe `exit` para volver a la charla. */
   renderGame?: (opts: { exit: () => void }) => ReactNode
 }) {
-  const { acronym, speaker, greeting, questions, closingSpeech, gameHotspot } =
-    config
+  const {
+    acronym,
+    speaker,
+    greeting,
+    questions,
+    closingSpeech,
+    gameHotspot,
+    framedGame,
+  } = config
 
   const image = imageForAcronym(acronym)
   const color = LAB_COLORS[acronym] ?? "var(--neon-cyan)"
@@ -138,6 +152,25 @@ export function LabConversation({
             boxShadow: `0 0 35px color-mix(in oklch, ${color} 35%, transparent)`,
           }}
         >
+          {started && framedGame && renderGame ? (
+            <div className="relative">
+              {/* Espaciador invisible: le da al recuadro EXACTAMENTE el mismo
+                  tamaño que el retrato, para que el juego se vea con el mismo
+                  marco y haya consistencia visual con las entrevistas. */}
+              <Image
+                src={image}
+                alt=""
+                aria-hidden
+                width={960}
+                height={960}
+                className="max-h-[92vh] w-auto rounded-[1rem] object-contain opacity-0"
+              />
+              <div className="absolute inset-0 flex">
+                {renderGame({ exit: () => setStarted(false) })}
+              </div>
+            </div>
+          ) : (
+          <>
           <div className="relative">
             <Image
               src={image}
@@ -262,11 +295,13 @@ export function LabConversation({
               </div>
             ) : null}
           </div>
+          </>
+          )}
         </div>
       </div>
 
-      {/* Juego del ámbito (overlay a pantalla completa) */}
-      {started && renderGame
+      {/* Juego NO enmarcado: overlay a pantalla completa (p. ej. CEO). */}
+      {started && !framedGame && renderGame
         ? renderGame({ exit: () => setStarted(false) })
         : null}
     </main>
