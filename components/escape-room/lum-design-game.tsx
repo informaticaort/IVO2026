@@ -1,18 +1,23 @@
 "use client"
 
-import { useEffect, useState, type CSSProperties, type DragEvent } from "react"
+import { useEffect, useState, type DragEvent } from "react"
 import Link from "next/link"
 
 /* -------------------------------------------------------------------------
  * JUEGO DEL ÁMBITO LUM — Portal de ADDE Labs corrompido
  * La IA rompió la interfaz del portal interno (barra lateral, encabezado,
- * tarjetas, colores, tipografía, espaciado, orden y ancho del contenido) y
- * mezcló herramientas de reparación reales con herramientas falsas.
+ * tarjetas, colores, tipografía, espaciado, orden y ancho del contenido).
  *
- * Diseño a propósito "siempre ganable": una herramienta falsa solo genera un
- * efecto de corrupción transitorio (se revierte solo) y nunca resta progreso
- * de forma permanente. El progreso real solo puede subir, nunca bajar, así
- * que el jugador jamás puede quedar en un estado imposible de completar.
+ * Cada aspecto de la interfaz tiene DOS herramientas con nombres neutros:
+ * una acerca la interfaz al original, la otra la aleja. Ninguna etiqueta
+ * delata cuál es cuál — el jugador tiene que comparar la interfaz en vivo
+ * contra la interfaz original para decidir.
+ *
+ * Diseño a propósito "siempre ganable": la herramienta incorrecta de cada
+ * par solo genera un resaltado de corrupción transitorio sobre esa parte
+ * de la interfaz (se revierte solo) y nunca resta progreso de forma
+ * permanente. El progreso real solo puede subir, nunca bajar, así que el
+ * jugador jamás puede quedar en un estado imposible de completar.
  * ---------------------------------------------------------------------- */
 
 const PASSWORD = "UX"
@@ -27,53 +32,58 @@ type FixKey =
   | "layoutOrder"
   | "contentWidth"
 
-type GlitchKey = "turboMode" | "rainbowPalette" | "compactAll" | "mirrorEffect" | "visualOverload"
-
 const FIX_TOOLS: { id: FixKey; label: string; hint: string }[] = [
-  { id: "sidebarWidth", label: "Restaurar ancho de la barra lateral", hint: "La barra lateral vuelve a su ancho correcto." },
-  { id: "headerHeight", label: "Restaurar altura del encabezado", hint: "El encabezado recupera su altura normal." },
-  { id: "cardAlignment", label: "Restaurar alineación de tarjetas", hint: "Las tarjetas vuelven a alinearse en la grilla." },
-  { id: "buttonColors", label: "Restaurar colores de botones", hint: "Los botones recuperan su color original." },
-  { id: "typography", label: "Restaurar tipografía", hint: "Los textos recuperan un tamaño coherente." },
-  { id: "spacing", label: "Restaurar espaciado", hint: "Los espacios internos vuelven a ser parejos." },
-  { id: "layoutOrder", label: "Restaurar orden de la interfaz", hint: "Los paneles recuperan su orden original." },
-  { id: "contentWidth", label: "Restaurar ancho del contenido", hint: "El contenido principal recupera su ancho correcto." },
+  { id: "sidebarWidth", label: "Expandir panel de navegación", hint: "Aumenta el ancho de la barra lateral izquierda." },
+  { id: "headerHeight", label: "Reducir altura del encabezado", hint: "Disminuye la altura de la franja superior." },
+  { id: "contentWidth", label: "Ampliar ancho del contenido", hint: "Expande el panel principal para ocupar más espacio." },
+  { id: "spacing", label: "Aumentar espaciado entre tarjetas", hint: "Agrega más aire entre los elementos del panel." },
+  { id: "cardAlignment", label: "Alinear tarjetas a la grilla", hint: "Endereza y alinea las tarjetas del panel." },
+  { id: "typography", label: "Tipografía compacta", hint: "Unifica los tamaños de texto en una escala más chica y consistente." },
+  { id: "buttonColors", label: "Paleta de color sobria", hint: "Unifica los botones con la paleta de marca." },
+  { id: "layoutOrder", label: "Priorizar estado de seguridad", hint: "Ubica el estado de seguridad como primera tarjeta del panel." },
 ]
 
-const GLITCH_TOOLS: { id: GlitchKey; label: string; hint: string }[] = [
-  { id: "turboMode", label: "Modo Turbo", hint: "Acelera la interfaz al máximo." },
-  { id: "rainbowPalette", label: "Paleta arcoíris", hint: "Prueba todos los colores disponibles a la vez." },
-  { id: "compactAll", label: "Compactar todo", hint: "Reduce todo para que entre más contenido." },
-  { id: "mirrorEffect", label: "Efecto espejo", hint: "Voltea la pantalla para revisarla desde otro ángulo." },
-  { id: "visualOverload", label: "Sobrecarga visual", hint: "Le suma más intensidad a toda la pantalla." },
+const WRONG_TOOLS: { id: string; targetKey: FixKey; label: string; hint: string }[] = [
+  { id: "sidebarWidthAlt", targetKey: "sidebarWidth", label: "Compactar panel de navegación", hint: "Reduce el ancho de la barra lateral izquierda." },
+  { id: "headerHeightAlt", targetKey: "headerHeight", label: "Aumentar altura del encabezado", hint: "Incrementa la altura de la franja superior." },
+  { id: "contentWidthAlt", targetKey: "contentWidth", label: "Reducir ancho del contenido", hint: "Angosta el panel principal." },
+  { id: "spacingAlt", targetKey: "spacing", label: "Reducir espaciado entre tarjetas", hint: "Junta más los elementos del panel." },
+  { id: "cardAlignmentAlt", targetKey: "cardAlignment", label: "Escalonar disposición de tarjetas", hint: "Desplaza y rota levemente las tarjetas del panel." },
+  { id: "typographyAlt", targetKey: "typography", label: "Tipografía expandida", hint: "Agranda los tamaños de texto de forma despareja." },
+  { id: "buttonColorsAlt", targetKey: "buttonColors", label: "Paleta de alto contraste", hint: "Satura los botones con colores llamativos." },
+  { id: "layoutOrderAlt", targetKey: "layoutOrder", label: "Priorizar experimentos activos", hint: "Ubica los experimentos activos como primera tarjeta del panel." },
 ]
 
 const ALL_FIX_KEYS = FIX_TOOLS.map((t) => t.id)
 const FIX_ID_SET = new Set<string>(ALL_FIX_KEYS)
 const FIX_STEP = 100 / ALL_FIX_KEYS.length
 
-type ToolInfo = { label: string; hint: string; kind: "fix" | "glitch" }
+type ToolInfo = { label: string; hint: string; kind: "fix" | "wrong"; targetKey: FixKey }
 
 const TOOL_LOOKUP: Record<string, ToolInfo> = Object.fromEntries([
-  ...FIX_TOOLS.map((t) => [t.id, { label: t.label, hint: t.hint, kind: "fix" as const }]),
-  ...GLITCH_TOOLS.map((t) => [t.id, { label: t.label, hint: t.hint, kind: "glitch" as const }]),
+  ...FIX_TOOLS.map((t) => [t.id, { label: t.label, hint: t.hint, kind: "fix" as const, targetKey: t.id }]),
+  ...WRONG_TOOLS.map((t) => [t.id, { label: t.label, hint: t.hint, kind: "wrong" as const, targetKey: t.targetKey }]),
 ])
 
-// Orden de exhibición: reales y falsas intercaladas para que no se noten agrupadas.
+// Orden de exhibición: cada par (correcta/incorrecta) queda separado para
+// que no se noten agrupadas ni se puedan comparar por posición en la lista.
 const TOOL_DISPLAY_ORDER: string[] = [
   "sidebarWidth",
-  "turboMode",
-  "headerHeight",
-  "rainbowPalette",
+  "typographyAlt",
+  "headerHeightAlt",
   "cardAlignment",
-  "compactAll",
-  "buttonColors",
-  "mirrorEffect",
-  "typography",
-  "visualOverload",
-  "spacing",
-  "layoutOrder",
+  "buttonColorsAlt",
   "contentWidth",
+  "layoutOrderAlt",
+  "spacing",
+  "sidebarWidthAlt",
+  "buttonColors",
+  "cardAlignmentAlt",
+  "headerHeight",
+  "spacingAlt",
+  "layoutOrder",
+  "typography",
+  "contentWidthAlt",
 ]
 
 function emptyRecord<K extends string>(keys: K[]): Record<K, boolean> {
@@ -96,24 +106,30 @@ function bar(n: number, total = 15) {
 /* --------------------------- Vista previa del portal --------------------------- */
 
 const STAT_CARDS = [
-  { id: "network", label: "Integridad de red", value: "92%" },
-  { id: "files", label: "Archivos recuperados", value: "3 / 4" },
+  { id: "security", label: "Estado de Seguridad", value: "ESTABLE" },
+  { id: "experiments", label: "Experimentos Activos", value: "07" },
+  { id: "researchers", label: "Investigadores Activos", value: "12" },
+  { id: "documents", label: "Documentos Seguros", value: "134" },
 ]
-const ALIGNMENT_JITTER = ["translate(8px,-6px) rotate(-4deg)", "translate(-8px,6px) rotate(4deg)"]
+const ALIGNMENT_JITTER = [
+  "translate(7px,-6px) rotate(-4deg)",
+  "translate(-7px,6px) rotate(4deg)",
+  "translate(6px,7px) rotate(3deg)",
+  "translate(-6px,-7px) rotate(-3deg)",
+]
 
 const BRAND = "#0f766e"
+const BRAND_DARK = "#0b5952"
 
 function DesignPreview({
   fixes,
   activeGlitch,
 }: {
   fixes: Record<FixKey, boolean>
-  activeGlitch: GlitchKey | null
+  activeGlitch: FixKey | null
 }) {
-  const rainbow = activeGlitch === "rainbowPalette"
-  const brandColor = rainbow ? "#ff3d81" : BRAND
-  const buttonColor = rainbow ? "#7c3aed" : fixes.buttonColors ? BRAND : "#e11d48"
-  const buttonAltColor = rainbow ? "#f59e0b" : fixes.buttonColors ? BRAND : "#a21caf"
+  const buttonColor = fixes.buttonColors ? BRAND : "#e11d48"
+  const buttonAltColor = fixes.buttonColors ? BRAND : "#a21caf"
 
   const badSpacing = !fixes.spacing
   const badTypography = !fixes.typography
@@ -124,54 +140,50 @@ function DesignPreview({
 
   const statOrder = fixes.layoutOrder ? STAT_CARDS : [...STAT_CARDS].reverse()
 
-  const wrapperStyle: CSSProperties = {
-    transform:
-      activeGlitch === "mirrorEffect"
-        ? "scaleX(-1)"
-        : activeGlitch === "compactAll"
-          ? "scale(0.72)"
-          : activeGlitch === "turboMode"
-            ? "rotate(2deg)"
-            : undefined,
-    transformOrigin: "top left",
-    filter: activeGlitch === "visualOverload" ? "invert(0.85) hue-rotate(180deg)" : undefined,
-  }
+  const ring = (key: FixKey) =>
+    activeGlitch === key ? "outline outline-2 outline-[var(--neon-red)] outline-offset-2" : "outline outline-2 outline-transparent"
 
   return (
-    <div
-      className={`relative overflow-hidden rounded-lg border border-black/10 bg-white shadow-[0_8px_30px_rgba(0,0,0,0.25)] transition-transform duration-300 ${
-        activeGlitch === "turboMode" ? "glitch" : ""
-      } ${activeGlitch === "visualOverload" ? "flicker" : ""}`}
-      style={wrapperStyle}
-    >
+    <div className="relative overflow-hidden rounded-lg border border-black/10 bg-white shadow-[0_8px_30px_rgba(0,0,0,0.25)]">
       {/* Encabezado */}
-      <div className={`flex items-center justify-between border-b border-slate-200 px-4 ${headerOversized ? "py-7" : "py-2.5"}`}>
-        <div className="flex items-center gap-2">
-          <span className="size-2.5 shrink-0 rounded-full" style={{ backgroundColor: brandColor }} />
-          <span className="font-sans text-sm font-bold text-slate-800">ADDE LABS</span>
+      <div
+        className={`flex items-center justify-between border-b border-slate-200 px-4 transition-all duration-200 ${ring("headerHeight")} ${
+          headerOversized ? "py-7" : "py-2.5"
+        }`}
+      >
+        <div className="flex items-center gap-1.5">
+          <svg width="14" height="14" viewBox="0 0 24 24" className="shrink-0">
+            <path d="M12 2 L21 7 L21 17 L12 22 L3 17 L3 7 Z" fill={BRAND} />
+          </svg>
+          <span className="font-sans text-sm font-bold tracking-tight text-slate-800">ADDE LABS</span>
         </div>
         <div className="hidden gap-4 sm:flex">
-          {["Panel", "Proyectos", "Equipo", "Reportes"].map((item) => (
+          {["Monitoreo IA", "Experimentos", "Investigadores", "Incidentes"].map((item) => (
             <span key={item} className="text-xs font-medium text-slate-500">
               {item}
             </span>
           ))}
         </div>
-        <span className="size-6 shrink-0 rounded-full bg-slate-200" />
+        <span
+          className="flex size-6 shrink-0 items-center justify-center rounded-full text-[8px] font-bold text-white"
+          style={{ backgroundColor: BRAND }}
+        >
+          AL
+        </span>
       </div>
 
       <div className="flex">
         {/* Barra lateral */}
         <div
-          className={`flex flex-col gap-1 overflow-hidden border-r border-slate-200 bg-slate-50 py-3 transition-all duration-300 ${
-            sidebarNarrow ? "w-6 px-0.5" : "w-24 px-2"
-          }`}
+          className={`flex flex-col gap-1 overflow-hidden border-r border-slate-200 bg-slate-50 py-3 transition-all duration-200 ${ring(
+            "sidebarWidth",
+          )} ${sidebarNarrow ? "w-6 px-0.5" : "w-24 px-2"}`}
         >
-          {["Inicio", "Labs", "Archivos", "Config"].map((item, i) => (
+          {["Panel", "Módulos", "Diagnóstico", "Accesos"].map((item, i) => (
             <span
               key={item}
               className="truncate rounded px-1.5 py-1 text-[10px] font-medium"
-              style={i === 0 ? { backgroundColor: brandColor, color: "#fff" } : { color: "#64748b" }}
+              style={i === 0 ? { backgroundColor: BRAND, color: "#fff" } : { color: "#64748b" }}
             >
               {item}
             </span>
@@ -179,29 +191,34 @@ function DesignPreview({
         </div>
 
         {/* Contenido principal */}
-        <div className={`flex-1 p-3 transition-all duration-300 ${contentTooNarrow ? "max-w-[38%]" : ""}`}>
+        <div className={`flex-1 p-3 transition-all duration-200 ${ring("contentWidth")} ${contentTooNarrow ? "max-w-[38%]" : ""}`}>
           <p className={badTypography ? "mb-2 text-[9px] font-normal lowercase text-slate-400" : "mb-2 text-sm font-semibold text-slate-800"}>
-            Resumen del laboratorio
+            Monitoreo de actividad IA
           </p>
 
           {/* Banner */}
-          <div className={`mb-2 rounded-lg text-white ${badSpacing ? "p-1" : "p-3"}`} style={{ backgroundColor: brandColor }}>
-            <p className={badTypography ? "text-lg font-normal" : "text-sm font-bold"}>Estado de ADDE Labs</p>
-            <p className="text-[10px] opacity-80">Monitoreo en tiempo real del sistema.</p>
+          <div
+            className={`mb-2 rounded-lg text-white transition-all duration-200 ${ring("typography")} ${badSpacing ? "p-1" : "p-3"}`}
+            style={{ backgroundImage: `linear-gradient(135deg, ${BRAND}, ${BRAND_DARK})` }}
+          >
+            <p className={badTypography ? "text-lg font-normal" : "text-sm font-bold"}>Estado de seguridad del sistema</p>
+            <p className="text-[10px] opacity-80">Contención de IA activa — monitoreo en tiempo real.</p>
             <span
-              className={`mt-2 inline-block rounded font-semibold ${badSpacing ? "px-1 py-0.5 text-[8px]" : "px-2 py-1 text-[10px]"}`}
+              className={`mt-2 inline-block rounded font-semibold transition-colors duration-200 ${ring("buttonColors")} ${
+                badSpacing ? "px-1 py-0.5 text-[8px]" : "px-2 py-1 text-[10px]"
+              }`}
               style={{ backgroundColor: buttonColor, color: "#fff" }}
             >
-              Ver detalle
+              Ver diagnóstico
             </span>
           </div>
 
           {/* Tarjetas de estado */}
-          <div className={`grid grid-cols-2 ${badSpacing ? "gap-0" : "gap-2"}`}>
+          <div className={`grid grid-cols-2 transition-all duration-200 ${ring("spacing")} ${ring("cardAlignment")} ${ring("layoutOrder")} ${badSpacing ? "gap-0" : "gap-2"}`}>
             {statOrder.map((stat, pos) => (
               <div
                 key={stat.id}
-                className={`rounded-md border border-slate-200 bg-white transition-transform duration-300 ${badSpacing ? "p-1" : "p-2.5"}`}
+                className={`rounded-md border border-slate-200 bg-white transition-transform duration-200 ${badSpacing ? "p-1" : "p-2.5"}`}
                 style={cardMisaligned ? { transform: ALIGNMENT_JITTER[pos] } : undefined}
               >
                 <p className={badTypography ? "text-[8px] text-slate-800" : "text-[10px] text-slate-500"}>{stat.label}</p>
@@ -211,15 +228,15 @@ function DesignPreview({
           </div>
         </div>
 
-        {/* Panel de avisos */}
+        {/* Panel de incidentes */}
         <div className={`hidden w-20 shrink-0 border-l border-slate-200 bg-white sm:block ${badSpacing ? "p-1" : "p-2.5"}`}>
-          <p className="mb-1 text-[9px] font-semibold text-slate-700">Avisos</p>
+          <p className="mb-1 text-[9px] font-semibold text-slate-700">Incidentes</p>
           <p className="text-[8px] leading-snug text-slate-400">La IA fue aislada del núcleo.</p>
           <span
-            className="mt-1 inline-block rounded px-1.5 py-0.5 text-[8px] font-semibold text-white"
+            className={`mt-1 inline-block rounded px-1.5 py-0.5 text-[8px] font-semibold text-white transition-colors duration-200 ${ring("buttonColors")}`}
             style={{ backgroundColor: buttonAltColor }}
           >
-            Ver todo
+            Ver incidentes
           </span>
         </div>
       </div>
@@ -279,13 +296,13 @@ export function LumDesignGame({ onExit }: { onExit?: () => void }) {
   const [phase, setPhase] = useState<"intro" | "playing" | "completing" | "won">("intro")
   const [fixes, setFixes] = useState<Record<FixKey, boolean>>(NO_FIXES)
   const [order, setOrder] = useState<FixKey[]>([])
-  const [activeGlitch, setActiveGlitch] = useState<GlitchKey | null>(null)
+  const [activeGlitch, setActiveGlitch] = useState<FixKey | null>(null)
   const [feedback, setFeedback] = useState<{ ok: boolean; text: string } | null>(null)
   const [completionLine, setCompletionLine] = useState(0)
 
   const correctCount = ALL_FIX_KEYS.filter((k) => fixes[k]).length
   const baseProgress = Math.round(correctCount * FIX_STEP)
-  // El progreso real (baseProgress) nunca baja: una herramienta falsa solo
+  // El progreso real (baseProgress) nunca baja: una herramienta incorrecta solo
   // provoca un descenso cosmético y transitorio en la barra, nunca permanente.
   const progress = activeGlitch && baseProgress < 100 ? Math.max(0, baseProgress - 15) : baseProgress
 
@@ -318,19 +335,20 @@ export function LumDesignGame({ onExit }: { onExit?: () => void }) {
   }, [phase])
 
   function applyToolById(id: string) {
-    if (FIX_ID_SET.has(id)) {
-      const fixId = id as FixKey
-      if (fixes[fixId]) return
-      const info = TOOL_LOOKUP[id]
-      setFixes((prev) => ({ ...prev, [fixId]: true }))
-      setOrder((prev) => [...prev, fixId])
-      setFeedback({ ok: true, text: `${info.label}: la interfaz mejora.` })
-      return
-    }
     const info = TOOL_LOOKUP[id]
     if (!info) return
-    setActiveGlitch(id as GlitchKey)
-    setFeedback({ ok: false, text: `${info.label}: eso empeoró las cosas... por suerte se puede arreglar.` })
+
+    if (info.kind === "fix") {
+      const fixId = id as FixKey
+      if (fixes[fixId]) return
+      setFixes((prev) => ({ ...prev, [fixId]: true }))
+      setOrder((prev) => [...prev, fixId])
+      setFeedback({ ok: true, text: `${info.label}: la interfaz se acerca al original.` })
+      return
+    }
+
+    setActiveGlitch(info.targetKey)
+    setFeedback({ ok: false, text: `${info.label}: la interfaz se aleja del original... pero se revierte solo.` })
   }
 
   function removeTool(id: FixKey) {
@@ -392,8 +410,8 @@ export function LumDesignGame({ onExit }: { onExit?: () => void }) {
                 Portal de ADDE Labs — LUM
               </p>
               <p className="font-mono text-xs text-white/60">
-                La IA corrompió la interfaz. Reparen el sistema: las herramientas falsas se
-                revierten solas, nunca se puede quedar trabado.
+                La IA corrompió la interfaz. Comparen ambas versiones para decidir qué aplicar:
+                los nombres no delatan cuál es correcta. Nada los puede dejar sin salida.
               </p>
             </div>
             {feedback ? (
@@ -519,8 +537,9 @@ export function LumDesignGame({ onExit }: { onExit?: () => void }) {
                 <p className="font-mono text-sm leading-relaxed text-white/85">
                   La IA corrompió por completo la interfaz del portal interno de ADDE Labs. Comparen la
                   interfaz dañada con la original y usen las Herramientas de Reparación para
-                  restaurar el sistema. Cuidado: no todas las herramientas sirven, aunque ninguna
-                  puede dejarlos sin salida.
+                  restaurar el sistema. Los nombres de las herramientas no dicen cuál es la correcta:
+                  observen bien las diferencias. Cuidado: no todas sirven, aunque ninguna puede
+                  dejarlos sin salida.
                 </p>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <div>
