@@ -181,22 +181,6 @@
 
 /* ---- Sala de escape: efectos cyber ---- */
 
-/* Líneas de escaneo tipo CRT que cubren toda la pantalla */
-.scanlines::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 50;
-  background: repeating-linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0) 0px,
-    rgba(0, 0, 0, 0) 2px,
-    rgba(0, 0, 0, 0.25) 3px,
-    rgba(0, 0, 0, 0) 4px
-  );
-}
-
 /* Resplandor de texto neón */
 .neon-green {
   color: var(--neon-green);
