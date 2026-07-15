@@ -4,11 +4,32 @@ import { useEffect, useRef } from "react"
 import { usePathname } from "next/navigation"
 
 import {
+  GAME_IDS,
   HEARTBEAT_INTERVAL_MS,
+  doneStorageKey,
   pathToLocation,
+  type GameId,
   type LocationId,
 } from "@/lib/presence/types"
 import { ensureAvatarUploaded, ensureGroupId, readTeamName } from "./use-group-id"
+
+/**
+ * Lee de `localStorage` qué juegos ya resolvió este grupo. Se relee en cada
+ * heartbeat para que, apenas un equipo completa un juego, el backoffice lo vea
+ * (a más tardar en el próximo latido).
+ */
+function readCompletedGames(): GameId[] {
+  if (typeof window === "undefined") return []
+  const done: GameId[] = []
+  try {
+    for (const id of GAME_IDS) {
+      if (window.localStorage.getItem(doneStorageKey(id))) done.push(id)
+    }
+  } catch {
+    /* localStorage bloqueado (modo privado): reportamos sin progreso */
+  }
+  return done
+}
 
 /**
  * Componente invisible que reporta la ubicación del grupo al backend.
@@ -24,7 +45,7 @@ export function PresenceReporter() {
   const pathname = usePathname()
   // Guardamos la ubicación actual en un ref para que el heartbeat siempre use
   // el valor más reciente sin recrear el intervalo en cada navegación.
-  const locationRef = useRef<LocationId>("otro")
+  const locationRef = useRef<LocationId>("lobby")
   const isAdmin = pathname?.startsWith("/admin") ?? false
 
   useEffect(() => {
@@ -46,6 +67,7 @@ export function PresenceReporter() {
         location: locationRef.current,
         path: pathname ?? "",
         since,
+        completed: readCompletedGames(),
       })
       // `keepalive` permite que el fetch sobreviva a una navegación en curso.
       fetch("/api/presence/report", {

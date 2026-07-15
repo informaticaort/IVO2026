@@ -5,16 +5,35 @@
  * El backoffice lee ese estado y lo agrupa por ubicación.
  */
 
-/** Identificadores canónicos de ubicación (las 5 vistas + estados auxiliares). */
+/** Identificadores canónicos de ubicación (las 5 vistas + el lobby). */
 export type LocationId =
   | "ami"
   | "ceo"
   | "cidi"
   | "hmp"
   | "lum"
-  | "plano"
   | "lobby"
-  | "otro"
+
+/** Los 5 juegos de la sala (subconjunto de `LocationId`). */
+export type GameId = "cidi" | "ami" | "hmp" | "ceo" | "lum"
+
+/**
+ * Orden canónico de los 5 juegos. Se usa tanto para pintar la barra de progreso
+ * del backoffice como para leer/validar los juegos que cada grupo completó.
+ */
+export const GAME_IDS: GameId[] = ["cidi", "ami", "hmp", "ceo", "lum"]
+
+/**
+ * Prefijo de la clave de `localStorage` con la que `LabConversation` marca un
+ * juego como resuelto (una clave por juego). Es la fuente de verdad del
+ * progreso: el cliente la lee en cada heartbeat y la reporta al backoffice.
+ */
+export const DONE_KEY_PREFIX = "escape-room-done-"
+
+/** Clave de `localStorage` que marca un juego como resuelto (p. ej. `...-AMI`). */
+export function doneStorageKey(gameId: GameId): string {
+  return `${DONE_KEY_PREFIX}${gameId.toUpperCase()}`
+}
 
 /** Estado de un grupo en un instante dado. */
 export type GroupPresence = {
@@ -30,6 +49,12 @@ export type GroupPresence = {
   since: number
   /** Epoch (ms) del último heartbeat recibido. */
   lastSeen: number
+  /**
+   * Juegos que el grupo ya resolvió, en orden canónico. Lo reporta el cliente
+   * leyendo `localStorage` en cada heartbeat, así el backoffice puede mostrar
+   * qué juegos completó cada grupo y cuáles quedan pendientes.
+   */
+  completed: GameId[]
 }
 
 /** Metadatos de cada ubicación para pintar el panel. */
@@ -50,12 +75,14 @@ export const LOCATIONS: LocationMeta[] = [
   { id: "hmp", label: "HMP", color: "oklch(0.62 0.25 300)" },
   { id: "ceo", label: "CEO", color: "oklch(0.98 0.01 240)" },
   { id: "lum", label: "LUM", color: "var(--neon-red)" },
-  { id: "plano", label: "Plano", color: "var(--neon-cyan)" },
-  { id: "lobby", label: "Registro / Lobby", color: "var(--neon-blue)" },
-  { id: "otro", label: "Otro", color: "var(--neon-pink)" },
+  { id: "lobby", label: "Lobby", color: "var(--neon-blue)" },
 ]
 
-/** Convierte una ruta (`usePathname`) a una ubicación canónica. */
+/**
+ * Convierte una ruta (`usePathname`) a una ubicación canónica. Cualquier vista
+ * que no sea uno de los 5 juegos (plano, registro, rutas sueltas) cae en el
+ * "lobby": el único grupo auxiliar que muestra el backoffice.
+ */
 export function pathToLocation(pathname: string): LocationId {
   switch (pathname) {
     case "/ami-game":
@@ -68,12 +95,8 @@ export function pathToLocation(pathname: string): LocationId {
       return "hmp"
     case "/lum-game":
       return "lum"
-    case "/plano":
-      return "plano"
-    case "/":
-      return "lobby"
     default:
-      return "otro"
+      return "lobby"
   }
 }
 

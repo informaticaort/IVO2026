@@ -4,14 +4,25 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { useSearchParams } from "next/navigation"
 
 import {
+  GAME_IDS,
   LOCATIONS,
   PRESENCE_TTL_MS,
+  type GameId,
   type GroupPresence,
   type LocationId,
+  type LocationMeta,
 } from "@/lib/presence/types"
 
 const POLL_INTERVAL_MS = 2000
-const GAME_IDS: LocationId[] = ["cidi", "ami", "hmp", "ceo", "lum"]
+// Tope fijo de grupos visibles por sala: mantiene la vista de una sola pantalla
+// (sin scroll). Si hay más, se muestran los primeros y un "+N".
+const MAX_GROUPS_PER_COLUMN = 4
+const GAME_ID_SET = new Set<string>(GAME_IDS)
+// Metadatos (etiqueta + color) de los 5 juegos, en orden canónico, para la
+// barra de luces de progreso de cada grupo.
+const GAME_META: LocationMeta[] = GAME_IDS.map(
+  (id) => LOCATIONS.find((l) => l.id === id)!,
+)
 // Recordamos la clave del admin en el navegador del operador para no reingresarla.
 const ADMIN_KEY_STORAGE = "ivo-admin-key"
 
@@ -22,9 +33,6 @@ type ListResponse = {
   error?: string
 }
 
-type GroupSort = "nombre" | "recientes" | "tiempo"
-type RoomSort = "fijo" | "cantidad"
-
 export function BackofficePanel() {
   const searchParams = useSearchParams()
   const [key, setKey] = useState(searchParams.get("key") ?? "")
@@ -33,12 +41,6 @@ export function BackofficePanel() {
   const [status, setStatus] = useState<"loading" | "ok" | "unauthorized" | "error">(
     "loading",
   )
-  const [lastUpdate, setLastUpdate] = useState<number | null>(null)
-
-  // Controles de orden / filtro
-  const [groupSort, setGroupSort] = useState<GroupSort>("nombre")
-  const [roomSort, setRoomSort] = useState<RoomSort>("fijo")
-  const [hideEmpty, setHideEmpty] = useState(false)
 
   // Cache de avatares: se piden una vez por grupo, no en cada poll.
   const [avatars, setAvatars] = useState<Record<string, string | null>>({})
@@ -81,7 +83,6 @@ export function BackofficePanel() {
           const data = (await res.json()) as ListResponse
           setGroups(data.groups)
           setServerNow(data.now)
-          setLastUpdate(Date.now())
           setStatus("ok")
           // Clave válida: la recordamos para las próximas visitas a /admin.
           if (key) window.localStorage.setItem(ADMIN_KEY_STORAGE, key)
@@ -129,65 +130,39 @@ export function BackofficePanel() {
     const map = new Map<LocationId, GroupPresence[]>()
     for (const loc of LOCATIONS) map.set(loc.id, [])
     for (const g of groups) {
-      const list = map.get(g.location) ?? map.get("otro")!
+      // Cualquier ubicación que no sea un juego cae en el lobby.
+      const list = map.get(g.location) ?? map.get("lobby")!
       list.push(g)
     }
-    // Orden de grupos dentro de cada sala.
-    const sorter = (a: GroupPresence, b: GroupPresence) => {
-      if (groupSort === "recientes") return b.since - a.since
-      if (groupSort === "tiempo") return a.since - b.since
-      return a.name.localeCompare(b.name)
-    }
-    for (const list of map.values()) list.sort(sorter)
+    // Orden fijo de grupos dentro de cada sala: por nombre (A–Z), estable.
+    for (const list of map.values()) list.sort((a, b) => a.name.localeCompare(b.name))
     return map
-  }, [groups, groupSort])
+  }, [groups])
 
-  const { orderedGames, orderedOthers } = useMemo(() => {
-    const count = (id: LocationId) => byLocation.get(id)?.length ?? 0
-    let games = LOCATIONS.filter((l) => GAME_IDS.includes(l.id))
-    let others = LOCATIONS.filter((l) => !GAME_IDS.includes(l.id))
-    if (roomSort === "cantidad") {
-      games = [...games].sort((a, b) => count(b.id) - count(a.id))
-      others = [...others].sort((a, b) => count(b.id) - count(a.id))
-    }
-    if (hideEmpty) {
-      games = games.filter((l) => count(l.id) > 0)
-      others = others.filter((l) => count(l.id) > 0)
-    }
-    return { orderedGames: games, orderedOthers: others }
-  }, [byLocation, roomSort, hideEmpty])
+  // Salas en orden fijo: primero los 5 juegos, luego las auxiliares.
+  const orderedGames = LOCATIONS.filter((l) => GAME_ID_SET.has(l.id))
+  const orderedOthers = LOCATIONS.filter((l) => !GAME_ID_SET.has(l.id))
 
   if (status === "unauthorized") {
     return <KeyGate keyInputRef={keyInputRef} onSubmit={(k) => setKey(k)} />
   }
 
   return (
-    <main className="min-h-screen bg-background px-4 py-6 sm:px-8 sm:py-10">
-      <div className="mx-auto flex max-w-6xl flex-col gap-6">
-        <header className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h1 className="font-pixel text-lg leading-[1.4] neon-green sm:text-2xl">
-              MONITOREO EN VIVO
-            </h1>
-            <p className="mt-2 font-mono text-xs text-muted-foreground sm:text-sm">
-              {groups.length} grupo{groups.length === 1 ? "" : "s"} activo
-              {groups.length === 1 ? "" : "s"}
-            </p>
-          </div>
-          <LiveIndicator status={status} lastUpdate={lastUpdate} />
+    <main className="h-screen overflow-hidden bg-background px-4 py-4 sm:px-6 sm:py-6">
+      <div className="mx-auto flex h-full max-w-7xl flex-col gap-4">
+        <header>
+          <h1 className="font-pixel text-lg leading-[1.4] neon-green sm:text-2xl">
+            MONITOREO EN VIVO
+          </h1>
+          <p className="mt-1 font-mono text-xs text-muted-foreground sm:text-sm">
+            {groups.length} grupo{groups.length === 1 ? "" : "s"} activo
+            {groups.length === 1 ? "" : "s"}
+          </p>
         </header>
 
-        <Toolbar
-          groupSort={groupSort}
-          roomSort={roomSort}
-          hideEmpty={hideEmpty}
-          onGroupSort={setGroupSort}
-          onRoomSort={setRoomSort}
-          onHideEmpty={setHideEmpty}
-        />
-
-        {/* Los 5 juegos, en grilla destacada */}
-        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {/* 6 salas (5 juegos + Lobby) en una grilla fija de 3×2 que estira
+            para ocupar toda la pantalla, sin scroll. */}
+        <section className="grid flex-1 auto-rows-fr grid-cols-2 gap-3 sm:grid-cols-3">
           {orderedGames.map((loc) => (
             <LocationColumn
               key={loc.id}
@@ -198,123 +173,20 @@ export function BackofficePanel() {
               avatars={avatars}
             />
           ))}
+          {orderedOthers.map((loc) => (
+            <LocationColumn
+              key={loc.id}
+              label={loc.label}
+              color={loc.color}
+              groups={byLocation.get(loc.id) ?? []}
+              serverNow={serverNow}
+              avatars={avatars}
+              muted
+            />
+          ))}
         </section>
-
-        {/* Ubicaciones auxiliares (plano, registro, otras rutas) */}
-        {orderedOthers.length > 0 && (
-          <section className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            {orderedOthers.map((loc) => (
-              <LocationColumn
-                key={loc.id}
-                label={loc.label}
-                color={loc.color}
-                groups={byLocation.get(loc.id) ?? []}
-                serverNow={serverNow}
-                avatars={avatars}
-                muted
-              />
-            ))}
-          </section>
-        )}
       </div>
     </main>
-  )
-}
-
-function Toolbar({
-  groupSort,
-  roomSort,
-  hideEmpty,
-  onGroupSort,
-  onRoomSort,
-  onHideEmpty,
-}: {
-  groupSort: GroupSort
-  roomSort: RoomSort
-  hideEmpty: boolean
-  onGroupSort: (v: GroupSort) => void
-  onRoomSort: (v: RoomSort) => void
-  onHideEmpty: (v: boolean) => void
-}) {
-  const selectClass =
-    "rounded-md border border-[var(--neon-cyan)]/40 bg-[oklch(0.16_0.04_264/0.7)] px-2 py-1.5 font-mono text-xs text-foreground outline-none focus:border-[var(--neon-cyan)]"
-
-  return (
-    <div className="flex flex-wrap items-center gap-x-5 gap-y-3 rounded-2xl border border-[var(--neon-cyan)]/25 bg-[oklch(0.11_0.04_264/0.6)] px-4 py-3">
-      <label className="flex items-center gap-2 font-mono text-xs text-muted-foreground">
-        Grupos:
-        <select
-          className={selectClass}
-          value={groupSort}
-          onChange={(e) => onGroupSort(e.target.value as GroupSort)}
-        >
-          <option value="nombre">Nombre (A–Z)</option>
-          <option value="recientes">Recién llegados</option>
-          <option value="tiempo">Más tiempo en sala</option>
-        </select>
-      </label>
-
-      <label className="flex items-center gap-2 font-mono text-xs text-muted-foreground">
-        Salas:
-        <select
-          className={selectClass}
-          value={roomSort}
-          onChange={(e) => onRoomSort(e.target.value as RoomSort)}
-        >
-          <option value="fijo">Orden fijo</option>
-          <option value="cantidad">Más concurridas</option>
-        </select>
-      </label>
-
-      <label className="flex cursor-pointer items-center gap-2 font-mono text-xs text-muted-foreground">
-        <input
-          type="checkbox"
-          checked={hideEmpty}
-          onChange={(e) => onHideEmpty(e.target.checked)}
-          className="size-3.5 accent-[var(--neon-green)]"
-        />
-        Ocultar salas vacías
-      </label>
-    </div>
-  )
-}
-
-function LiveIndicator({
-  status,
-  lastUpdate,
-}: {
-  status: "loading" | "ok" | "unauthorized" | "error"
-  lastUpdate: number | null
-}) {
-  const [, force] = useState(0)
-  // Re-render cada segundo para refrescar los contadores de tiempo.
-  useEffect(() => {
-    const id = window.setInterval(() => force((n) => n + 1), 1000)
-    return () => window.clearInterval(id)
-  }, [])
-
-  const ok = status === "ok"
-  const label =
-    status === "error"
-      ? "Sin conexión"
-      : status === "loading"
-        ? "Conectando…"
-        : lastUpdate
-          ? `Actualizado hace ${Math.max(0, Math.round((Date.now() - lastUpdate) / 1000))}s`
-          : "En vivo"
-
-  return (
-    <div className="flex items-center gap-2 rounded-full border border-[var(--neon-cyan)]/30 bg-[oklch(0.11_0.04_264/0.85)] px-3 py-1.5">
-      <span
-        className={`size-2.5 rounded-full ${ok ? "animate-pulse" : ""}`}
-        style={{
-          backgroundColor: ok ? "var(--neon-green)" : "var(--neon-red)",
-          boxShadow: `0 0 8px ${ok ? "var(--neon-green)" : "var(--neon-red)"}`,
-        }}
-        aria-hidden
-      />
-      <span className="font-mono text-xs text-muted-foreground">{label}</span>
-    </div>
   )
 }
 
@@ -333,6 +205,10 @@ function LocationColumn({
   avatars: Record<string, string | null>
   muted?: boolean
 }) {
+  // Tope fijo por sala para que la vista entre en una sola pantalla.
+  const visible = groups.slice(0, MAX_GROUPS_PER_COLUMN)
+  const overflow = groups.length - visible.length
+
   return (
     <div
       className="flex flex-col gap-3 rounded-2xl border bg-[oklch(0.11_0.04_264/0.7)] p-4"
@@ -367,7 +243,7 @@ function LocationColumn({
         <p className="font-mono text-xs text-muted-foreground/60">Sin grupos</p>
       ) : (
         <ul className="flex flex-col gap-2">
-          {groups.map((g) => (
+          {visible.map((g) => (
             <GroupCard
               key={g.grupoId}
               group={g}
@@ -376,6 +252,11 @@ function LocationColumn({
               avatar={avatars[g.grupoId]}
             />
           ))}
+          {overflow > 0 ? (
+            <li className="px-1 font-mono text-[0.7rem] text-muted-foreground/70">
+              +{overflow} más
+            </li>
+          ) : null}
         </ul>
       )}
     </div>
@@ -437,8 +318,52 @@ function GroupCard({
           {stale ? "⚠ " : ""}
           en sala hace {formatDuration(serverNow - group.since)}
         </p>
+        <GameProgressBar completed={group.completed ?? []} />
       </div>
     </li>
+  )
+}
+
+/**
+ * Barra de luces de progreso de un grupo: una lucecita por cada uno de los 5
+ * juegos, en orden fijo. Cada juego se identifica SOLO por su color (sin texto):
+ * la luz se "prende" (color + glow del juego) cuando el grupo ya lo resolvió y
+ * queda tenue —con el mismo color apagado— mientras esté pendiente. Así el
+ * operador ve de un vistazo qué juegos completó cada equipo y cuáles le faltan.
+ */
+function GameProgressBar({ completed }: { completed: GameId[] }) {
+  const done = new Set<GameId>(completed)
+
+  return (
+    <div className="mt-1.5 flex items-center gap-1.5">
+      <div className="flex flex-1 gap-1.5">
+        {GAME_META.map((game) => {
+          const lit = done.has(game.id as GameId)
+          return (
+            <span
+              key={game.id}
+              title={`${game.label}: ${lit ? "completado" : "pendiente"}`}
+              className="h-2.5 flex-1 rounded-full border transition-all"
+              style={
+                lit
+                  ? {
+                      backgroundColor: game.color,
+                      borderColor: game.color,
+                      boxShadow: `0 0 8px ${game.color}`,
+                    }
+                  : {
+                      backgroundColor: `color-mix(in oklch, ${game.color} 14%, transparent)`,
+                      borderColor: `color-mix(in oklch, ${game.color} 30%, transparent)`,
+                    }
+              }
+            />
+          )
+        })}
+      </div>
+      <span className="shrink-0 font-mono text-[0.62rem] tabular-nums text-muted-foreground">
+        {done.size}/{GAME_META.length}
+      </span>
+    </div>
   )
 }
 

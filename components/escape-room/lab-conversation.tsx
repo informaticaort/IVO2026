@@ -4,6 +4,7 @@ import { useEffect, useState, type ReactNode } from "react"
 import Image from "next/image"
 import Link from "next/link"
 
+import { DONE_KEY_PREFIX } from "@/lib/presence/types"
 import { LAB_COLORS } from "./floor-plan"
 
 export type LabQuestion = { id: string; question: string; answer: string }
@@ -62,9 +63,6 @@ export type LabConversationConfig = {
 }
 
 const LETTERS = ["A", "B", "C", "D", "E", "F", "G", "H"]
-
-/** Prefijo de la clave en localStorage que marca un ámbito ya resuelto. */
-const DONE_KEY_PREFIX = "escape-room-done-"
 
 const DEFAULT_COMPLETED_SPEECH =
   "Este sector ya quedó resuelto. No tengo nada nuevo para contarte, " +
