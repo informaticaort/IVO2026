@@ -26,7 +26,14 @@ const ASCII_TABLE = Array.from({ length: 26 }, (_, i) => ({
   code: 65 + i,
 }))
 
-export function AmiEquationsGame({ onExit }: { onExit?: () => void }) {
+export function AmiEquationsGame({
+  onExit,
+  onWin,
+}: {
+  onExit?: () => void
+  /** Se llama al resolver la terminal, para marcar el ámbito como completado. */
+  onWin?: () => void
+}) {
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [attempt, setAttempt] = useState("")
   const [error, setError] = useState(false)
@@ -41,6 +48,7 @@ export function AmiEquationsGame({ onExit }: { onExit?: () => void }) {
     e.preventDefault()
     if (attempt.trim().toUpperCase() === PASSWORD) {
       setWon(true)
+      onWin?.()
     } else {
       setError(true)
     }

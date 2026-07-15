@@ -411,7 +411,14 @@ function RecycleBinWindow({
   )
 }
 
-export function CeoDesktopGame({ onExit }: { onExit?: () => void }) {
+export function CeoDesktopGame({
+  onExit,
+  onWin,
+}: {
+  onExit?: () => void
+  /** Se llama al liberar el fragmento (ganar), para marcar el ámbito resuelto. */
+  onWin?: () => void
+}) {
   const [openWindow, setOpenWindow] = useState<WindowKind>(null)
   const [fileSelected, setFileSelected] = useState(false)
   const [fileRestored, setFileRestored] = useState(false)
@@ -906,7 +913,12 @@ export function CeoDesktopGame({ onExit }: { onExit?: () => void }) {
                         iaRecuperada = {" "}
                         <button
                           type="button"
-                          onClick={() => setIaRecuperada((v) => !v)}
+                          onClick={() => {
+                            const next = !iaRecuperada
+                            setIaRecuperada(next)
+                            // Al liberar el fragmento se da por resuelto el ámbito.
+                            if (next) onWin?.()
+                          }}
                           className={`rounded px-1 font-bold underline decoration-dashed underline-offset-4 ${
                             iaRecuperada ? "text-[#4ec9b0]" : "text-[#569cd6]"
                           }`}

@@ -13,17 +13,20 @@ const CEO_CONFIG: LabConversationConfig = {
     "Soy Belen. Programación. Dale, preguntá lo que quieras… total ya decidieron que soy sospechosa antes de escucharme.",
   closingSpeech:
     "Bien. Suficiente charla. Fíjense en esa computadora del fondo: se encendió sola con el desafío de programación cargado… a ver si son tan rápidos como dicen.",
-  // Monitor más cercano, en el escritorio de adelante a la derecha: se pone
-  // azul cuando terminan las preguntas. Es casi frontal, así que no necesita
-  // clip-path (la pantalla ya se ve como un rectángulo).
+  completedSpeech:
+    "Ya está, el desafío de programación quedó resuelto y el pendrive tiene su fragmento. No hace falta que sigan preguntando; si quieren, revisen el registro de la entrevista. Yo ya dije todo lo que tenía para decir.",
+  // Monitor de la izquierda (el que está a la izquierda del más cercano, sobre
+  // el mismo escritorio): se enciende cuando terminan las preguntas. El hotspot
+  // se ajusta al vidrio de la pantalla para que el recorte quede dentro del
+  // marco. Es casi frontal, así que no necesita clip-path.
   gameHotspot: {
-    left: "80.9%",
-    top: "72.2%",
-    width: "12.4%",
-    height: "12.9%",
+    left: "66.3%",
+    top: "57.5%",
+    width: "8.4%",
+    height: "9.7%",
     // Recorte de la pantalla del escritorio real (CeoDesktopPixelArt.png,
-    // 1672x941) para que la "pantalla prendida" muestre el mismo fondo que
-    // van a ver al entrar, en vez de la pantalla azul genérica ":(".
+    // 1672x941) para que la "pantalla prendida" muestre el mismo fondo que van
+    // a ver al entrar, en vez de la pantalla azul genérica ":(".
     preview: {
       image: "/images/CeoDesktopPixelArt.png",
       backgroundSize: "189.35% 200.21%",
@@ -90,7 +93,9 @@ export function CeoConversation() {
   return (
     <LabConversation
       config={CEO_CONFIG}
-      renderGame={({ exit }) => <CeoDesktopGame onExit={exit} />}
+      renderGame={({ exit, complete }) => (
+        <CeoDesktopGame onExit={exit} onWin={complete} />
+      )}
     />
   )
 }

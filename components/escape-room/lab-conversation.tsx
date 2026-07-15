@@ -20,6 +20,13 @@ export type LabConversationConfig = {
   /** Frase de cierre al iniciar el juego. */
   closingSpeech: string
   /**
+   * Frase genérica que se muestra cuando el jugador vuelve a entrar al ámbito
+   * DESPUÉS de haberlo resuelto: puede revisar los logs de la entrevista pero
+   * ya no puede volver a preguntar ni a jugar. Si se omite, se usa una por
+   * defecto.
+   */
+  completedSpeech?: string
+  /**
    * Zona clickeable sobre la imagen (en % relativos a la imagen) que inicia
    * el juego. Si se define, reemplaza al botón "Iniciar juego": al terminar
    * las preguntas la zona se "enciende" como pantalla azul y se puede clickear.
@@ -56,6 +63,13 @@ export type LabConversationConfig = {
 
 const LETTERS = ["A", "B", "C", "D", "E", "F", "G", "H"]
 
+/** Prefijo de la clave en localStorage que marca un ámbito ya resuelto. */
+const DONE_KEY_PREFIX = "escape-room-done-"
+
+const DEFAULT_COMPLETED_SPEECH =
+  "Este sector ya quedó resuelto. No tengo nada nuevo para contarte, " +
+  "pero podés revisar el registro de la entrevista cuando quieras."
+
 /** "CEO" -> "/images/CeoPixelArt.png" */
 function imageForAcronym(acronym: string) {
   const name =
@@ -68,8 +82,11 @@ export function LabConversation({
   renderGame,
 }: {
   config: LabConversationConfig
-  /** Juego que se muestra al iniciar; recibe `exit` para volver a la charla. */
-  renderGame?: (opts: { exit: () => void }) => ReactNode
+  /**
+   * Juego que se muestra al iniciar. Recibe `exit` para volver a la charla y
+   * `complete` para marcar el ámbito como resuelto (se llama al ganar).
+   */
+  renderGame?: (opts: { exit: () => void; complete: () => void }) => ReactNode
 }) {
   const {
     acronym,
@@ -77,6 +94,7 @@ export function LabConversation({
     greeting,
     questions,
     closingSpeech,
+    completedSpeech,
     gameHotspot,
     framedGame,
   } = config
@@ -89,6 +107,35 @@ export function LabConversation({
   const [asked, setAsked] = useState<string[]>([])
   const [started, setStarted] = useState(false)
   const [showHistory, setShowHistory] = useState(false)
+  // `completed` = el ámbito ya fue resuelto en una visita anterior.
+  const [completed, setCompleted] = useState(false)
+
+  const doneKey = `${DONE_KEY_PREFIX}${acronym}`
+
+  // Al entrar: si este ámbito ya está resuelto, no repetimos toda la entrevista.
+  // Damos por hechas todas las preguntas (para que el registro quede completo),
+  // mostramos una frase genérica y ocultamos las preguntas y el juego.
+  useEffect(() => {
+    try {
+      if (localStorage.getItem(doneKey)) {
+        setCompleted(true)
+        setAsked(questions.map((q) => q.id))
+        setSpeech(completedSpeech ?? DEFAULT_COMPLETED_SPEECH)
+      }
+    } catch {
+      /* noop */
+    }
+  }, [doneKey, questions, completedSpeech])
+
+  // Marca el ámbito como resuelto (lo llama el juego al ganar).
+  function markCompleted() {
+    try {
+      localStorage.setItem(doneKey, "1")
+    } catch {
+      /* noop */
+    }
+    setCompleted(true)
+  }
 
   // Retrato del jugador (equipo) que carga en la pantalla anterior.
   const [player, setPlayer] = useState<{ name: string; avatar: string | null }>(
@@ -126,7 +173,8 @@ export function LabConversation({
   const currentSpeech = started ? closingSpeech : speech
 
   // Con hotspot: al terminar las preguntas se enciende la pantalla azul.
-  const hotspotActive = allAsked && !!gameHotspot && !started
+  // Si el ámbito ya está resuelto, no se vuelve a ofrecer el juego.
+  const hotspotActive = allAsked && !!gameHotspot && !started && !completed
 
   return (
     <main className="scanlines relative flex h-screen w-screen flex-col overflow-hidden bg-background p-3 sm:p-4">
@@ -259,7 +307,10 @@ export function LabConversation({
                 className="max-h-[92vh] w-auto rounded-[1rem] object-contain opacity-0"
               />
               <div className="absolute inset-0 flex">
-                {renderGame({ exit: () => setStarted(false) })}
+                {renderGame({
+                  exit: () => setStarted(false),
+                  complete: markCompleted,
+                })}
               </div>
             </div>
           ) : (
@@ -348,8 +399,10 @@ export function LabConversation({
               </div>
             </div>
 
-            {/* Opciones (aparecen debajo del diálogo), en 2 columnas */}
-            {!started ? (
+            {/* Opciones (aparecen debajo del diálogo), en 2 columnas.
+                Si el ámbito ya está resuelto, no se muestran: solo la frase
+                genérica y el registro (botón de logs). */}
+            {!started && !completed ? (
               <div className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-[var(--neon-cyan)]/30 bg-[oklch(0.08_0.04_264/0.72)] px-3 py-2 backdrop-blur-sm">
                 <div className="flex items-center justify-between px-1 pb-2">
                   <p className="font-mono text-[0.72rem] text-muted-foreground">
@@ -395,7 +448,7 @@ export function LabConversation({
 
       {/* Juego NO enmarcado: overlay a pantalla completa (p. ej. CEO). */}
       {started && !framedGame && renderGame
-        ? renderGame({ exit: () => setStarted(false) })
+        ? renderGame({ exit: () => setStarted(false), complete: markCompleted })
         : null}
     </main>
   )

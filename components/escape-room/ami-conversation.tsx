@@ -13,6 +13,8 @@ const AMI_CONFIG: LabConversationConfig = {
     "Hola, ¿cómo estás? Soy Mica. Preguntame lo que necesites, con tranquilidad… quiero que esto se resuelva bien.",
   closingSpeech:
     "Bien. Esa computadora quedó bloqueada por la IA… resuelvan las ecuaciones con calma y conviertan cada número en su letra.",
+  completedSpeech:
+    "Gracias por la ayuda. Esta parte del sistema ya quedó desencriptada y el pendrive tiene su fragmento. Si querés, podés revisar el registro de lo que hablamos, pero por acá ya no queda nada más para preguntar.",
   // El juego se muestra dentro del recuadro (como las entrevistas), no fullscreen.
   framedGame: true,
   // Monitor de la segunda fila (el de la silla azul, con teclado y mouse):
@@ -82,7 +84,9 @@ export function AmiConversation() {
   return (
     <LabConversation
       config={AMI_CONFIG}
-      renderGame={({ exit }) => <AmiEquationsGame onExit={exit} />}
+      renderGame={({ exit, complete }) => (
+        <AmiEquationsGame onExit={exit} onWin={complete} />
+      )}
     />
   )
 }
