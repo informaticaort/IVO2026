@@ -9,11 +9,11 @@ import { LAB_COLORS } from "./floor-plan"
 /* -------------------------------------------------------------------------
  * JUEGO DEL ÁMBITO CEO — Escritorio con archivo borrado
  * La compu se "prendió" y muestra un escritorio con 3 íconos:
- *  - Papelera: explorador de archivos con un archivo borrado. Al
- *    restaurarlo se abre como un bloc de notas con los pasos mezclados;
- *    se reordenan arrastrándolos (drag and drop). Al guardar el orden
- *    correcto, la ventana se queda tal cual: hay que cerrarla e ir a ver
- *    ADDE Labs.
+ *  - Papelera: captura real de Windows con un archivo borrado. Al
+ *    restaurarlo se abre un juego de ordenar a pantalla completa (estilo
+ *    arcade retro, sin scroll): hay que arrastrar bloques de código
+ *    mezclados hasta reconstruir una función de ordenamiento válida. Al
+ *    lograrlo, hay que cerrar la ventana e ir a ver ADDE Labs.
  *  - ADDE Labs: la página de la empresa se ve rota (sin estilos, con
  *    imágenes caídas) hasta que se ordena el archivo de la papelera. Una
  *    vez recuperada, muestra el logo, info básica y un link para
@@ -25,15 +25,42 @@ import { LAB_COLORS } from "./floor-plan"
  * imagen, con barra de título estilo Windows (no macOS).
  * ---------------------------------------------------------------------- */
 
-type Step = { id: string; text: string }
+type Step = { id: string; text: string; icon: string }
 
+// Pasos en pseudocódigo clásico (INICIO/MIENTRAS/SI/ENTONCES/FIN) que, en
+// este orden, describen el algoritmo completo para ordenar la lista
+// (bubble sort) en español simple, sin sintaxis de ningún lenguaje real.
 const CORRECT_ORDER: Step[] = [
-  { id: "s1", text: "Agarrar la lista de números tal como está, sin cambiar nada todavía." },
-  { id: "s2", text: "Mirar los primeros dos números, uno al lado del otro." },
-  { id: "s3", text: "Si el de la izquierda es más grande que el de la derecha, cambiarlos de lugar." },
-  { id: "s4", text: "Seguir con el próximo par de números, de a dos, hasta llegar al final." },
-  { id: "s5", text: "Repetir todo el proceso desde el principio, las veces que haga falta." },
-  { id: "s6", text: "Cuando ya no hay que cambiar ningún número, guardar la lista: quedó ordenada." },
+  {
+    id: "s1",
+    icon: "🏁",
+    text: "INICIO\nSuponer que todavía puede haber números para intercambiar",
+  },
+  {
+    id: "s2",
+    icon: "🔁",
+    text: "MIENTRAS pueda haber cambios, HACER:\nSuponer que en esta vuelta no va a haber ningún cambio",
+  },
+  {
+    id: "s3",
+    icon: "👉",
+    text: "PARA cada par de números vecinos, HACER:",
+  },
+  {
+    id: "s4",
+    icon: "❓",
+    text: "SI el número de la izquierda es mayor que el de la derecha, ENTONCES:\nIntercambiar los dos números de lugar\nMarcar que en esta vuelta sí hubo un cambio",
+  },
+  {
+    id: "s5",
+    icon: "🔄",
+    text: "Terminar de revisar todos los pares y volver a repetir el MIENTRAS",
+  },
+  {
+    id: "s6",
+    icon: "✅",
+    text: "Cuando una vuelta completa no tuvo cambios, la lista ya está ordenada\nFIN",
+  },
 ]
 
 // Orden inicial mezclado: ninguna línea arranca en su lugar correcto.
@@ -62,9 +89,13 @@ const ICONS = {
   vscode: { left: "54.13%", top: "9.78%", width: "8.37%", height: "15.94%" },
 }
 
-// Área de la pantalla del monitor (dentro del bisel negro) sobre la misma
-// imagen: ahí adentro se recortan las "ventanas" de las apps.
-const SCREEN = { left: "10.41%", top: "9.25%", width: "52.81%", height: "49.95%" }
+// Área "de trabajo" del escritorio (dentro del bisel negro, por encima de la
+// barra de tareas) sobre la misma imagen: ahí adentro se recortan y centran
+// las "ventanas" de las apps, tomando la barra de tareas como límite inferior
+// en vez del borde de la pantalla. Medida en la imagen: la pantalla arranca
+// en 9.25% de alto y la barra de tareas en 53.46%, así que el área de
+// trabajo ocupa esa franja intermedia (44.21% de alto).
+const WORK_AREA = { left: "10.41%", top: "9.25%", width: "52.81%", height: "44.21%" }
 
 type WindowKind = "papelera" | "labs" | "chrome" | "vscode" | null
 
@@ -74,6 +105,178 @@ function CodeLine({ n, children }: { n: number; children: React.ReactNode }) {
     <div className="flex gap-3">
       <span className="w-5 shrink-0 select-none text-right text-[#6e7681]">{n}</span>
       <span className="whitespace-pre">{children}</span>
+    </div>
+  )
+}
+
+// Palabras del pseudocódigo que se resaltan dentro de cada tarjeta.
+const PSEUDOCODE_KEYWORDS = ["INICIO", "FIN", "MIENTRAS", "HACER", "PARA", "SI", "ENTONCES"]
+
+/** Resalta en color de acento las palabras clave del pseudocódigo dentro de una línea. */
+function highlightKeywords(line: string, keyPrefix: string): React.ReactNode[] {
+  const re = new RegExp(`\\b(${PSEUDOCODE_KEYWORDS.join("|")})\\b`, "g")
+  const nodes: React.ReactNode[] = []
+  let lastIndex = 0
+  let match: RegExpExecArray | null
+  let i = 0
+  while ((match = re.exec(line))) {
+    if (match.index > lastIndex) nodes.push(line.slice(lastIndex, match.index))
+    nodes.push(
+      <span key={`${keyPrefix}-${i++}`} className="font-bold neon-cyan">
+        {match[0]}
+      </span>,
+    )
+    lastIndex = match.index + match[0].length
+  }
+  if (lastIndex < line.length) nodes.push(line.slice(lastIndex))
+  return nodes
+}
+
+/**
+ * Juego de ordenar: pantalla completa con tarjetas grandes y prolijas (sin
+ * scroll, se leen bien en cualquier tamaño) en vez de una ventanita de
+ * "Bloc de notas". Cada tarjeta es un paso en pseudocódigo simple, en
+ * español, sin sintaxis de ningún lenguaje real — pensado para gente que no
+ * programa. En el orden correcto arman el algoritmo completo para ordenar
+ * la lista.
+ */
+function SortAlgorithmGame({
+  order,
+  dragIndex,
+  dragOverIndex,
+  checked,
+  orderCorrect,
+  solved,
+  onDragStart,
+  onDragOverIndex,
+  onDragEnd,
+  onDropIndex,
+  onSave,
+  onClose,
+}: {
+  order: string[]
+  dragIndex: number | null
+  dragOverIndex: number | null
+  checked: boolean
+  orderCorrect: boolean
+  solved: boolean
+  onDragStart: (i: number) => void
+  onDragOverIndex: (i: number) => void
+  onDragEnd: () => void
+  onDropIndex: (i: number) => void
+  onSave: () => void
+  onClose: () => void
+}) {
+  return (
+    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-background p-3 sm:p-6">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 bg-cover bg-center bg-no-repeat opacity-40"
+        style={{ backgroundImage: "url(/images/cyber-bg.png)" }}
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,oklch(0.1_0.04_264/0.9)_75%,oklch(0.08_0.04_264/0.97)_100%)]"
+      />
+
+      <div className="relative flex h-full max-h-[calc(100vh-1.5rem)] w-full max-w-4xl flex-col overflow-hidden rounded-[1.5rem] border-4 border-[var(--neon-cyan)]/70 bg-[oklch(0.1_0.04_264/0.92)] p-4 shadow-[0_0_45px_color-mix(in_oklch,var(--neon-cyan)_35%,transparent)] sm:p-6">
+        <div className="flex shrink-0 items-center justify-between gap-3 pb-3 sm:pb-4">
+          <div className="min-w-0">
+            <p className="truncate font-pixel text-xs uppercase tracking-[0.2em] neon-cyan sm:text-sm">
+              lógica_página · algoritmo para ordenar
+            </p>
+            <p className="mt-1 font-mono text-[0.7rem] text-muted-foreground sm:text-xs">
+              Arrastrá los pasos (⠿) hasta que queden en el orden correcto.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="shrink-0 rounded-md border-2 border-[var(--neon-cyan)]/60 px-3 py-1.5 font-pixel text-[0.6rem] uppercase text-[var(--neon-cyan)] transition-colors hover:bg-[var(--neon-cyan)] hover:text-background sm:text-xs"
+          >
+            ✕ Salir
+          </button>
+        </div>
+
+        <ul className="flex min-h-0 flex-1 flex-col gap-2 sm:gap-2.5">
+          {order.map((id, i) => {
+            const step = STEPS_BY_ID[id]
+            const isCorrect = checked && id === CORRECT_ORDER[i].id
+            const isWrong = checked && id !== CORRECT_ORDER[i].id
+            const isDragging = dragIndex === i
+            const isDragOver = dragOverIndex === i && dragIndex !== i
+            const lines = step.text.split("\n")
+            return (
+              <li
+                key={id}
+                draggable
+                onDragStart={() => onDragStart(i)}
+                onDragOver={(e) => {
+                  e.preventDefault()
+                  onDragOverIndex(i)
+                }}
+                onDragEnd={onDragEnd}
+                onDrop={(e) => {
+                  e.preventDefault()
+                  onDropIndex(i)
+                }}
+                className={`flex min-h-0 flex-1 cursor-grab items-center gap-3 rounded-xl border-2 px-3 py-2 transition-colors active:cursor-grabbing sm:gap-4 sm:px-4 ${
+                  isCorrect
+                    ? "border-[var(--neon-green)] bg-[color-mix(in_oklch,var(--neon-green)_14%,transparent)]"
+                    : isWrong
+                      ? "border-[var(--neon-red)] bg-[color-mix(in_oklch,var(--neon-red)_14%,transparent)]"
+                      : isDragOver
+                        ? "border-[var(--neon-cyan)] bg-[color-mix(in_oklch,var(--neon-cyan)_12%,transparent)]"
+                        : "border-white/15 bg-white/[0.04]"
+                } ${isDragging ? "opacity-40" : ""}`}
+              >
+                <span
+                  aria-hidden="true"
+                  className="shrink-0 text-lg text-muted-foreground sm:text-xl"
+                >
+                  ⠿
+                </span>
+                <span className="flex size-7 shrink-0 items-center justify-center rounded-full border-2 border-current font-pixel text-[0.65rem] text-[var(--neon-cyan)] sm:size-8 sm:text-xs">
+                  {i + 1}
+                </span>
+                <span
+                  aria-hidden="true"
+                  className="hidden shrink-0 text-xl sm:block sm:text-2xl"
+                >
+                  {step.icon}
+                </span>
+                <div className="min-w-0 flex-1 text-[clamp(0.72rem,1.3vw,1rem)] leading-snug text-foreground/90">
+                  {lines.map((line, li) => (
+                    <p key={li} className={li > 0 ? "mt-0.5 pl-4" : ""}>
+                      {highlightKeywords(line, `${id}-${li}`)}
+                    </p>
+                  ))}
+                </div>
+              </li>
+            )
+          })}
+        </ul>
+
+        <div className="flex shrink-0 flex-wrap items-center gap-3 pt-3 sm:pt-4">
+          <button
+            type="button"
+            onClick={onSave}
+            className="rounded-md border-2 border-[var(--neon-green)] bg-[color-mix(in_oklch,var(--neon-green)_18%,transparent)] px-4 py-2 font-pixel text-[0.6rem] uppercase tracking-wide text-[var(--neon-green)] transition-colors hover:bg-[var(--neon-green)] hover:text-background sm:text-[0.7rem]"
+          >
+            Probar orden
+          </button>
+          {checked && !orderCorrect ? (
+            <p className="font-mono text-[0.75rem] font-semibold text-[var(--neon-red)] sm:text-sm">
+              Todavía no está bien. Seguí probando.
+            </p>
+          ) : null}
+          {solved ? (
+            <p className="font-mono text-[0.75rem] font-semibold text-[var(--neon-green)] sm:text-sm">
+              ¡Listo! Cerrá esta ventana y andá a ADDE Labs.
+            </p>
+          ) : null}
+        </div>
+      </div>
     </div>
   )
 }
@@ -91,25 +294,27 @@ function ScreenWindow({
   return (
     <div
       className="absolute z-10 flex items-center justify-center overflow-hidden p-3 sm:p-5"
-      style={SCREEN}
+      style={WORK_AREA}
     >
-      {/* La ventana tiene un tamaño constante y queda centrada dentro de la
-          pantalla del monitor, como una app real con un tamaño fijo. */}
-      <div className="flex h-[85%] w-[85%] flex-col overflow-hidden rounded-lg bg-white shadow-2xl">
-        <div className="flex shrink-0 items-center justify-between border-b border-gray-300 bg-gray-100 pl-3">
+      {/* La ventana tiene un tamaño constante y queda centrada dentro del
+          área de trabajo del escritorio (por encima de la barra de tareas),
+          como una app real con un tamaño fijo. Esquinas rectas, borde fino
+          y sombra dura: chrome de ventana estilo Windows, no una card de iOS. */}
+      <div className="flex h-[85%] w-[85%] flex-col overflow-hidden border border-[#8a8a8a] bg-white shadow-[0_3px_14px_rgba(0,0,0,0.45)]">
+        <div className="flex h-8 shrink-0 items-center justify-between border-b border-gray-300 bg-[#f0f0f0] pl-3 sm:h-9">
           <p className="truncate text-sm font-semibold text-gray-700 sm:text-base">
             {title}
           </p>
-          <div className="flex h-8 shrink-0 sm:h-9">
+          <div className="flex h-full shrink-0">
             <span
               aria-hidden="true"
-              className="flex w-9 items-center justify-center text-gray-600 hover:bg-gray-200 sm:w-10"
+              className="flex w-11 items-center justify-center text-sm text-gray-600 hover:bg-[#e5e5e5] sm:w-12"
             >
               &#x2013;
             </span>
             <span
               aria-hidden="true"
-              className="flex w-9 items-center justify-center text-[0.7rem] text-gray-600 hover:bg-gray-200 sm:w-10"
+              className="flex w-11 items-center justify-center text-[0.65rem] text-gray-600 hover:bg-[#e5e5e5] sm:w-12"
             >
               &#x25A1;
             </span>
@@ -117,7 +322,7 @@ function ScreenWindow({
               type="button"
               onClick={onClose}
               aria-label="Cerrar ventana"
-              className="flex w-9 items-center justify-center text-gray-600 transition-colors hover:bg-red-500 hover:text-white sm:w-10"
+              className="flex w-11 items-center justify-center text-sm text-gray-600 transition-colors hover:bg-[#e81123] hover:text-white sm:w-12"
             >
               &#x2715;
             </button>
@@ -126,6 +331,81 @@ function ScreenWindow({
         <div className="min-h-0 flex-1 overflow-y-auto bg-white text-base leading-snug sm:text-lg">
           {children}
         </div>
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Ventana de la Papelera de reciclaje: captura real de una ventana de
+ * Windows en vista de íconos (ya trae su propia barra de título, ribbon y
+ * botón "Restaurar" dibujados), así que no se envuelve en ScreenWindow. Las
+ * zonas clickeables (cerrar, seleccionar el archivo, restaurar) van
+ * superpuestas como botones invisibles en las coordenadas de la captura.
+ */
+function RecycleBinWindow({
+  fileSelected,
+  onToggleSelect,
+  onRestore,
+  onClose,
+}: {
+  fileSelected: boolean
+  onToggleSelect: () => void
+  onRestore: () => void
+  onClose: () => void
+}) {
+  return (
+    <div
+      className="absolute z-10 flex items-center justify-center overflow-hidden"
+      style={WORK_AREA}
+    >
+      <div className="relative h-full">
+        <Image
+          src="/images/Papelera.png"
+          alt="Papelera de reciclaje de Windows con el archivo lógica_página eliminado"
+          width={1672}
+          height={941}
+          className="h-full w-auto select-none object-contain shadow-[0_3px_14px_rgba(0,0,0,0.45)]"
+        />
+
+        {/* Cerrar: superpuesta sobre la X de la captura */}
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Cerrar ventana"
+          className="absolute"
+          style={{ left: "93.9%", top: "0%", width: "6.1%", height: "6.8%" }}
+        />
+
+        {/* Ícono + nombre del archivo eliminado: seleccionable con un clic */}
+        <button
+          type="button"
+          onClick={onToggleSelect}
+          aria-pressed={fileSelected}
+          aria-label={
+            fileSelected
+              ? "lógica_página seleccionado"
+              : "Seleccionar lógica_página"
+          }
+          className={`absolute rounded-md border-2 transition-colors ${
+            fileSelected
+              ? "border-[#99d1ff] bg-[#cce8ff]/70"
+              : "border-transparent hover:bg-black/5"
+          }`}
+          style={{ left: "28.7%", top: "27.1%", width: "15.6%", height: "38.3%" }}
+        />
+
+        {/* Restaurar: superpuesta sobre el botón real de la barra de herramientas */}
+        <button
+          type="button"
+          onClick={() => {
+            if (fileSelected) onRestore()
+          }}
+          aria-disabled={!fileSelected}
+          aria-label="Restaurar el elemento seleccionado"
+          className={`absolute ${fileSelected ? "cursor-pointer" : "cursor-not-allowed"}`}
+          style={{ left: "78.3%", top: "16.5%", width: "10.2%", height: "7.4%" }}
+        />
       </div>
     </div>
   )
@@ -255,135 +535,37 @@ export function CeoDesktopGame({ onExit }: { onExit?: () => void }) {
               </>
             ) : null}
 
-            {/* Ventana: Papelera → explorador de archivos / bloc de notas */}
-            {openWindow === "papelera" ? (
-              <ScreenWindow
-                title={
-                  fileRestored
-                    ? "instrucciones_ordenar.txt - Bloc de notas"
-                    : "Papelera de reciclaje"
-                }
+            {/* Ventana: Papelera → captura real de Windows, sin restaurar */}
+            {openWindow === "papelera" && !fileRestored ? (
+              <RecycleBinWindow
+                fileSelected={fileSelected}
+                onToggleSelect={() => setFileSelected((v) => !v)}
+                onRestore={() => setFileRestored(true)}
                 onClose={closeWindow}
-              >
-                {!fileRestored ? (
-                  <div className="flex flex-col">
-                    <div className="flex items-center gap-1.5 border-b border-gray-200 bg-gray-50 px-2 py-1.5">
-                      <button
-                        type="button"
-                        disabled={!fileSelected}
-                        onClick={() => setFileRestored(true)}
-                        className="flex items-center gap-1.5 rounded-md px-2.5 py-1 font-semibold text-white transition-colors enabled:bg-blue-600 enabled:hover:bg-blue-700 disabled:bg-gray-300 disabled:text-gray-500"
-                      >
-                        <span aria-hidden="true">↺</span> Restaurar el elemento seleccionado
-                      </button>
-                    </div>
-                    <div className="border-b border-gray-200 bg-amber-50 px-2 py-1.5 font-medium text-amber-800">
-                      🗑️ Papelera de reciclaje
-                    </div>
-                    <div className="grid grid-cols-[1fr_90px_60px] gap-1 border-b border-gray-200 bg-gray-50 px-2 py-1.5 text-sm font-semibold uppercase tracking-wide text-gray-500">
-                      <span>Nombre</span>
-                      <span>Eliminado</span>
-                      <span>Tamaño</span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setFileSelected(true)}
-                      className={`grid w-full grid-cols-[1fr_90px_60px] items-center gap-1 px-2 py-2 text-left transition-colors ${
-                        fileSelected ? "bg-blue-100" : "hover:bg-gray-50"
-                      }`}
-                    >
-                      <span className="flex items-center gap-2 truncate text-gray-800">
-                        <span className="flex size-7 shrink-0 items-center justify-center rounded bg-sky-500 text-xs font-bold text-white">
-                          TXT
-                        </span>
-                        instrucciones_ordenar.txt
-                      </span>
-                      <span className="text-gray-500">Hoy</span>
-                      <span className="text-gray-500">2 KB</span>
-                    </button>
-                    <p className="px-2 py-2 text-gray-400">
-                      {fileSelected
-                        ? "Elemento seleccionado. Ahora podés restaurarlo."
-                        : "Hacé clic en el archivo para seleccionarlo."}
-                    </p>
-                  </div>
-                ) : (
-                  <div className="flex flex-col gap-2.5 p-3">
-                    <p className="leading-relaxed text-gray-700">
-                      Este archivo tiene los pasos para ordenar una lista de
-                      números, pero quedaron mezclados. Arrastrá cada paso
-                      (con el ⠿) hasta el orden correcto.
-                    </p>
-                    <ul className="flex flex-col gap-1.5">
-                      {order.map((id, i) => {
-                        const step = STEPS_BY_ID[id]
-                        const isCorrect = checked && id === CORRECT_ORDER[i].id
-                        const isWrong = checked && id !== CORRECT_ORDER[i].id
-                        const isDragging = dragIndex === i
-                        const isDragOver = dragOverIndex === i && dragIndex !== i
-                        return (
-                          <li
-                            key={id}
-                            draggable
-                            onDragStart={() => setDragIndex(i)}
-                            onDragOver={(e) => {
-                              e.preventDefault()
-                              if (dragOverIndex !== i) setDragOverIndex(i)
-                            }}
-                            onDragEnd={() => {
-                              setDragIndex(null)
-                              setDragOverIndex(null)
-                            }}
-                            onDrop={(e) => {
-                              e.preventDefault()
-                              handleDrop(i)
-                            }}
-                            className={`flex cursor-grab items-center gap-2 rounded-lg border-2 px-2 py-2 transition-colors active:cursor-grabbing ${
-                              isCorrect
-                                ? "border-green-500 bg-green-50 text-green-800"
-                                : isWrong
-                                  ? "border-red-400 bg-red-50 text-red-700"
-                                  : isDragOver
-                                    ? "border-indigo-500 bg-indigo-100"
-                                    : "border-indigo-200 bg-indigo-50/60 text-gray-800"
-                            } ${isDragging ? "opacity-40" : ""}`}
-                          >
-                            <span
-                              aria-hidden="true"
-                              className="shrink-0 text-lg leading-none text-gray-400"
-                            >
-                              ⠿
-                            </span>
-                            <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-indigo-500 text-sm font-bold text-white">
-                              {i + 1}
-                            </span>
-                            <span className="flex-1">{step.text}</span>
-                          </li>
-                        )
-                      })}
-                    </ul>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={handleSave}
-                        className="rounded-md bg-blue-600 px-3 py-1.5 font-semibold text-white transition-colors hover:bg-blue-700"
-                      >
-                        Guardar orden
-                      </button>
-                      {checked && !orderCorrect ? (
-                        <p className="font-semibold text-red-600">
-                          Todavía no está bien. Seguí probando.
-                        </p>
-                      ) : null}
-                      {solved ? (
-                        <p className="font-semibold text-green-700">
-                          ¡Listo! Cerrá esta ventana y andá a ADDE Labs.
-                        </p>
-                      ) : null}
-                    </div>
-                  </div>
-                )}
-              </ScreenWindow>
+              />
+            ) : null}
+
+            {/* Ventana: Papelera restaurada → juego de ordenar el algoritmo, pantalla completa */}
+            {openWindow === "papelera" && fileRestored ? (
+              <SortAlgorithmGame
+                order={order}
+                dragIndex={dragIndex}
+                dragOverIndex={dragOverIndex}
+                checked={checked}
+                orderCorrect={orderCorrect}
+                solved={solved}
+                onDragStart={(i) => setDragIndex(i)}
+                onDragOverIndex={(i) => {
+                  if (dragOverIndex !== i) setDragOverIndex(i)
+                }}
+                onDragEnd={() => {
+                  setDragIndex(null)
+                  setDragOverIndex(null)
+                }}
+                onDropIndex={handleDrop}
+                onSave={handleSave}
+                onClose={closeWindow}
+              />
             ) : null}
 
             {/* Ventana: ADDE Labs → página rota hasta que se resuelve el archivo */}
