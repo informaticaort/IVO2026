@@ -13,6 +13,8 @@ const LUM_CONFIG: LabConversationConfig = {
     "Soy Santi. De hecho, prefiero los datos a las opiniones. Preguntá lo que quieras… voy a ser preciso.",
   closingSpeech:
     "Bien. El desafío visual empieza ahora. Observen diferencias, detecten patrones y reconstruyan la interfaz. De hecho, los detalles son todo.",
+  completedSpeech:
+    "La interfaz volvió a coincidir con el sistema original y el pendrive recuperó el fragmento de LUM. De hecho, quedó impecable. Podés revisar el registro de la entrevista si querés.",
   questions: [
     {
       id: "q1",
@@ -67,7 +69,9 @@ export function LumConversation() {
   return (
     <LabConversation
       config={LUM_CONFIG}
-      renderGame={({ exit }) => <LumDesignGame onExit={exit} />}
+      renderGame={({ exit, complete }) => (
+        <LumDesignGame onExit={exit} onWin={complete} />
+      )}
     />
   )
 }

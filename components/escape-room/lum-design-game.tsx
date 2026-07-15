@@ -393,7 +393,14 @@ function ColorPalette({
 
 /* ------------------------------------ Componente ------------------------------------ */
 
-export function LumDesignGame({ onExit }: { onExit?: () => void }) {
+export function LumDesignGame({
+  onExit,
+  onWin,
+}: {
+  onExit?: () => void
+  /** Se llama al restaurar el sistema al 100%, para marcar el ámbito como resuelto. */
+  onWin?: () => void
+}) {
   const [phase, setPhase] = useState<"playing" | "completing" | "won">("playing")
   const [designState, setDesignState] = useState<DesignState>(INITIAL_STATE)
   const [pulse, setPulse] = useState<{ key: PropertyKey; ok: boolean } | null>(null)
@@ -408,6 +415,17 @@ export function LumDesignGame({ onExit }: { onExit?: () => void }) {
 
   const correctCount = PROPERTY_KEYS.filter((k) => isCorrect(k, designState)).length
   const progress = Math.round((correctCount / PROPERTY_KEYS.length) * 100)
+
+  // Al alcanzar el 100% el ámbito queda resuelto (una sola vez). Se marca acá,
+  // apenas coincide el diseño, para que el monitoreo registre la completitud
+  // aunque el equipo salga durante la animación de restauración.
+  const wonNotified = useRef(false)
+  useEffect(() => {
+    if (progress === 100 && !wonNotified.current) {
+      wonNotified.current = true
+      onWin?.()
+    }
+  }, [progress, onWin])
 
   useEffect(() => {
     if (!pulse) return
