@@ -75,7 +75,7 @@ export const LOCATIONS: LocationMeta[] = [
   { id: "hmp", label: "HMP", color: "oklch(0.62 0.25 300)" },
   { id: "ceo", label: "CEO", color: "oklch(0.98 0.01 240)" },
   { id: "lum", label: "LUM", color: "var(--neon-red)" },
-  { id: "lobby", label: "Lobby", color: "var(--neon-blue)" },
+  { id: "lobby", label: "Lobby", color: "oklch(0.8 0.12 236)" },
 ]
 
 /**

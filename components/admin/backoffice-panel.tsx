@@ -23,6 +23,21 @@ const GAME_ID_SET = new Set<string>(GAME_IDS)
 const GAME_META: LocationMeta[] = GAME_IDS.map(
   (id) => LOCATIONS.find((l) => l.id === id)!,
 )
+
+/* --------------------------------------------------------------------------
+ * Estilo de las tarjetas:
+ *  - El panel de cada sala usa EL COLOR DEL ÁMBITO como fondo (identidad fuerte,
+ *    color brillante/claro) → su encabezado va en texto oscuro (`ON_COLOR_TEXT`).
+ *  - La tarjeta de cada equipo usa `onLight()` (el mismo color oscurecido), un
+ *    fondo oscuro → su texto va claro (`TEAM_TEXT`) y las luces de progreso
+ *    vuelven a brillar como neón.
+ * ------------------------------------------------------------------------- */
+/** Versión oscura y legible de un color de acento (fondo de la card de equipo). */
+const onLight = (color: string) => `color-mix(in oklch, ${color} 52%, black)`
+const ON_COLOR_TEXT = "oklch(0.2 0.03 264)" // texto/acento sobre el panel de color
+const TEAM_TEXT = "oklch(0.97 0.01 264)" // texto principal sobre la card de equipo
+const TEAM_TEXT_SOFT = "oklch(0.8 0.03 264)" // texto secundario sobre la card de equipo
+
 // Recordamos la clave del admin en el navegador del operador para no reingresarla.
 const ADMIN_KEY_STORAGE = "ivo-admin-key"
 
@@ -139,31 +154,46 @@ export function BackofficePanel() {
     return map
   }, [groups])
 
-  // Salas en orden fijo: primero los 5 juegos, luego las auxiliares.
-  const orderedGames = LOCATIONS.filter((l) => GAME_ID_SET.has(l.id))
-  const orderedOthers = LOCATIONS.filter((l) => !GAME_ID_SET.has(l.id))
+  // Los 5 juegos en orden alfabético (AMI, CEO, CIDI, HMP, LUM) y el Lobby
+  // siempre al final (más a la derecha).
+  const orderedLocations = [...LOCATIONS].sort((a, b) => {
+    const aGame = GAME_ID_SET.has(a.id)
+    const bGame = GAME_ID_SET.has(b.id)
+    if (aGame !== bGame) return aGame ? -1 : 1
+    return a.label.localeCompare(b.label)
+  })
 
   if (status === "unauthorized") {
     return <KeyGate keyInputRef={keyInputRef} onSubmit={(k) => setKey(k)} />
   }
 
   return (
-    <main className="h-screen overflow-hidden bg-background px-4 py-4 sm:px-6 sm:py-6">
-      <div className="mx-auto flex h-full max-w-7xl flex-col gap-4">
+    <main className="scanlines relative h-screen overflow-hidden bg-background px-4 py-4 sm:px-6 sm:py-6">
+      {/* Fondo cyberpunk compartido con el resto de las vistas */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 bg-cover bg-center bg-no-repeat opacity-60"
+        style={{ backgroundImage: "url(/images/cyber-bg.png)" }}
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,oklch(0.12_0.04_264/0.85)_75%,oklch(0.1_0.04_264/0.96)_100%)]"
+      />
+      <div className="relative z-10 flex h-full w-full flex-col gap-4">
         <header>
           <h1 className="font-pixel text-lg leading-[1.4] neon-green sm:text-2xl">
             MONITOREO EN VIVO
           </h1>
-          <p className="mt-1 font-mono text-xs text-muted-foreground sm:text-sm">
+          <p className="mt-1 font-mono text-xs text-foreground/80 sm:text-sm">
             {groups.length} grupo{groups.length === 1 ? "" : "s"} activo
             {groups.length === 1 ? "" : "s"}
           </p>
         </header>
 
-        {/* 6 salas (5 juegos + Lobby) en una grilla fija de 3×2 que estira
-            para ocupar toda la pantalla, sin scroll. */}
-        <section className="grid flex-1 auto-rows-fr grid-cols-2 gap-3 sm:grid-cols-3">
-          {orderedGames.map((loc) => (
+        {/* Las 6 salas (5 juegos + Lobby), en orden alfabético, en una sola fila
+            de 6 columnas que estira para ocupar toda la pantalla, sin scroll. */}
+        <section className="grid flex-1 auto-rows-fr grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+          {orderedLocations.map((loc) => (
             <LocationColumn
               key={loc.id}
               label={loc.label}
@@ -171,17 +201,7 @@ export function BackofficePanel() {
               groups={byLocation.get(loc.id) ?? []}
               serverNow={serverNow}
               avatars={avatars}
-            />
-          ))}
-          {orderedOthers.map((loc) => (
-            <LocationColumn
-              key={loc.id}
-              label={loc.label}
-              color={loc.color}
-              groups={byLocation.get(loc.id) ?? []}
-              serverNow={serverNow}
-              avatars={avatars}
-              muted
+              muted={!GAME_ID_SET.has(loc.id)}
             />
           ))}
         </section>
@@ -211,36 +231,36 @@ function LocationColumn({
 
   return (
     <div
-      className="flex flex-col gap-3 rounded-2xl border bg-[oklch(0.11_0.04_264/0.7)] p-4"
-      style={{ borderColor: `color-mix(in oklch, ${color} 45%, transparent)` }}
+      className="flex flex-col gap-3 overflow-hidden rounded-2xl border p-3 shadow-[0_4px_18px_oklch(0.1_0.04_264/0.55)]"
+      style={{
+        // Mismo color del ámbito, pero con menos intensidad: bajamos la opacidad
+        // (no la saturación) para dejar que el fondo lo atenúe sin cambiar el RGB.
+        backgroundColor: `color-mix(in oklch, ${color} 82%, transparent)`,
+        borderColor: "color-mix(in oklch, black 22%, transparent)",
+      }}
     >
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span
-            className="size-3 rounded-full"
-            style={{ backgroundColor: color, boxShadow: `0 0 10px ${color}` }}
-            aria-hidden
-          />
-          <h2
-            className={muted ? "font-mono text-sm font-semibold" : "font-pixel text-sm"}
-            style={{ color }}
-          >
-            {label}
-          </h2>
-        </div>
+      <div className="flex items-center justify-between gap-2">
+        <h2
+          className={muted ? "font-mono text-sm font-semibold" : "font-pixel text-sm"}
+          style={{ color: ON_COLOR_TEXT }}
+        >
+          {label}
+        </h2>
         <span
           className="rounded-full px-2 py-0.5 font-mono text-xs font-bold"
-          style={{
-            color,
-            backgroundColor: `color-mix(in oklch, ${color} 15%, transparent)`,
-          }}
+          style={{ color: TEAM_TEXT, backgroundColor: onLight(color) }}
         >
           {groups.length}
         </span>
       </div>
 
       {groups.length === 0 ? (
-        <p className="font-mono text-xs text-muted-foreground/60">Sin grupos</p>
+        <p
+          className="font-mono text-xs"
+          style={{ color: "color-mix(in oklch, black 55%, transparent)" }}
+        >
+          Sin grupos
+        </p>
       ) : (
         <ul className="flex flex-col gap-2">
           {visible.map((g) => (
@@ -253,7 +273,10 @@ function LocationColumn({
             />
           ))}
           {overflow > 0 ? (
-            <li className="px-1 font-mono text-[0.7rem] text-muted-foreground/70">
+            <li
+              className="px-1 font-mono text-[0.7rem] font-semibold"
+              style={{ color: "color-mix(in oklch, black 65%, transparent)" }}
+            >
               +{overflow} más
             </li>
           ) : null}
@@ -287,22 +310,25 @@ function GroupCard({
   const initial = group.name.charAt(0).toUpperCase() || "?"
 
   return (
-    <li className="flex items-center gap-3 rounded-xl border border-white/5 bg-[oklch(0.16_0.04_264/0.6)] px-3 py-2">
+    <li
+      className="flex items-center gap-3 rounded-xl border border-white/10 px-3 py-2"
+      style={{ backgroundColor: onLight(color) }}
+    >
       {avatar ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={avatar}
           alt={`Foto de ${group.name}`}
           className="size-8 shrink-0 rounded-full object-cover"
-          style={{ border: `1px solid color-mix(in oklch, ${color} 55%, transparent)` }}
+          style={{ border: `1px solid ${color}` }}
         />
       ) : (
         <span
           className="flex size-8 shrink-0 items-center justify-center rounded-full font-pixel text-xs"
           style={{
             color,
-            border: `1px solid color-mix(in oklch, ${color} 55%, transparent)`,
-            backgroundColor: `color-mix(in oklch, ${color} 12%, transparent)`,
+            border: `1px solid color-mix(in oklch, ${color} 60%, transparent)`,
+            backgroundColor: "color-mix(in oklch, black 25%, transparent)",
           }}
           aria-hidden
         >
@@ -310,10 +336,12 @@ function GroupCard({
         </span>
       )}
       <div className="min-w-0 flex-1">
-        <p className="truncate font-mono text-sm text-foreground">{group.name}</p>
+        <p className="truncate font-mono text-sm font-medium" style={{ color: TEAM_TEXT }}>
+          {group.name}
+        </p>
         <p
           className="font-mono text-[0.7rem]"
-          style={{ color: stale ? "var(--neon-red)" : "var(--muted-foreground)" }}
+          style={{ color: stale ? "var(--neon-red)" : TEAM_TEXT_SOFT }}
         >
           {stale ? "⚠ " : ""}
           en sala hace {formatDuration(serverNow - group.since)}
@@ -352,15 +380,18 @@ function GameProgressBar({ completed }: { completed: GameId[] }) {
                       boxShadow: `0 0 8px ${game.color}`,
                     }
                   : {
-                      backgroundColor: `color-mix(in oklch, ${game.color} 14%, transparent)`,
-                      borderColor: `color-mix(in oklch, ${game.color} 30%, transparent)`,
+                      backgroundColor: `color-mix(in oklch, ${game.color} 22%, transparent)`,
+                      borderColor: `color-mix(in oklch, ${game.color} 50%, transparent)`,
                     }
               }
             />
           )
         })}
       </div>
-      <span className="shrink-0 font-mono text-[0.62rem] tabular-nums text-muted-foreground">
+      <span
+        className="shrink-0 font-mono text-[0.62rem] font-semibold tabular-nums"
+        style={{ color: TEAM_TEXT_SOFT }}
+      >
         {done.size}/{GAME_META.length}
       </span>
     </div>
@@ -375,8 +406,18 @@ function KeyGate({
   onSubmit: (key: string) => void
 }) {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-background px-4">
-      <div className="flex w-full max-w-sm flex-col gap-4 rounded-2xl border border-[var(--neon-red)]/40 bg-[oklch(0.11_0.04_264/0.85)] p-6">
+    <main className="scanlines relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-background px-4">
+      {/* Fondo cyberpunk compartido con el resto de las vistas */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 bg-cover bg-center bg-no-repeat opacity-60"
+        style={{ backgroundImage: "url(/images/cyber-bg.png)" }}
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,oklch(0.12_0.04_264/0.85)_75%,oklch(0.1_0.04_264/0.96)_100%)]"
+      />
+      <div className="relative z-10 flex w-full max-w-sm flex-col gap-4 rounded-2xl border border-[var(--neon-red)]/40 bg-[oklch(0.11_0.04_264/0.85)] p-6">
         <h1 className="font-pixel text-base neon-red">ACCESO RESTRINGIDO</h1>
         <p className="font-mono text-xs text-muted-foreground">
           Ingresá la clave de administrador para ver el monitoreo.
