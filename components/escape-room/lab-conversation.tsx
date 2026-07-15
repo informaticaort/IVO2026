@@ -175,7 +175,7 @@ export function LabConversation({
   const hotspotActive = allAsked && !!gameHotspot && !started && !completed
 
   return (
-    <main className="scanlines relative flex h-screen w-screen flex-col overflow-hidden bg-background p-3 sm:p-4">
+    <main className="relative flex h-screen w-screen flex-col overflow-hidden bg-background p-3 sm:p-4">
       {/* Fondo de la escena */}
       <div
         aria-hidden="true"
