@@ -26,6 +26,9 @@ export const LAB_COLORS: Record<string, string> = {
 const PLAN_SCALE = 2.2
 const PLAN_WIDTH = 850
 const PLAN_HEIGHT = 795
+// Ninguna sala ocupa la franja y < 142: es un pasillo/zona sin mapear.
+// Se recorta del viewBox para no dejar un margen vacío arriba del plano.
+const PLAN_TOP = 142
 const VIEWBOX_PADDING = 24
 
 function scaleRoom(room: Room): Room {
@@ -152,10 +155,10 @@ function PlainRoom({ x, y, w, h }: Room) {
       y={y}
       width={w}
       height={h}
-      fill="oklch(0.2 0.045 264 / 0.55)"
+      fill="oklch(0.2 0.045 264 / 0.4)"
       stroke="var(--neon-cyan)"
-      strokeOpacity={0.45}
-      strokeWidth={2.5}
+      strokeOpacity={0.35}
+      strokeWidth={2}
     />
   )
 }
@@ -193,6 +196,17 @@ function LabeledRoom({ room }: { room: Room }) {
         stroke={stroke}
         strokeWidth={isKey ? 4 : 3}
       />
+      {room.href ? (
+        <rect
+          x={room.x}
+          y={room.y}
+          width={room.w}
+          height={room.h}
+          fill={accent}
+          fillOpacity={0.28}
+          className="pointer-events-none opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100"
+        />
+      ) : null}
       <text
         x={cx}
         y={room.subtitle ? cy - 6 : startY}
@@ -234,7 +248,7 @@ function LabeledRoom({ room }: { room: Room }) {
       <a
         href={room.href}
         aria-label={room.ariaLabel ?? room.label}
-        className="cursor-pointer"
+        className="group cursor-pointer outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--neon-cyan)]"
       >
         {content}
       </a>
@@ -248,15 +262,45 @@ const SCALED_PLAIN_ROOMS = PLAIN_ROOMS.map(scaleRoom)
 const SCALED_LABELED_ROOMS = LABELED_ROOMS.map(scaleRoom)
 const SCALED_DOORS = DOORS.map(scaleRoom)
 
+const VIEW_X = -VIEWBOX_PADDING
+const VIEW_Y = PLAN_TOP * PLAN_SCALE - VIEWBOX_PADDING
+const VIEW_W = PLAN_WIDTH * PLAN_SCALE + VIEWBOX_PADDING * 2
+const VIEW_H = (PLAN_HEIGHT - PLAN_TOP) * PLAN_SCALE + VIEWBOX_PADDING * 2
+
 export function FloorPlan() {
   return (
     <svg
-      viewBox={`-${VIEWBOX_PADDING} -${VIEWBOX_PADDING} ${PLAN_WIDTH * PLAN_SCALE + VIEWBOX_PADDING * 2} ${PLAN_HEIGHT * PLAN_SCALE + VIEWBOX_PADDING * 2}`}
+      viewBox={`${VIEW_X} ${VIEW_Y} ${VIEW_W} ${VIEW_H}`}
       preserveAspectRatio="xMidYMid meet"
       role="img"
       aria-label="Plano del piso de laboratorios. Laboratorios destacados: CIDI, AMI, HMP, CEO y LUM."
       className="block h-full w-full max-w-none"
+      style={{ minWidth: 640, minHeight: (640 * VIEW_H) / VIEW_W }}
     >
+      <defs>
+        <pattern
+          id="floor-grid"
+          width={40 * PLAN_SCALE}
+          height={40 * PLAN_SCALE}
+          patternUnits="userSpaceOnUse"
+        >
+          <path
+            d={`M ${40 * PLAN_SCALE} 0 L 0 0 0 ${40 * PLAN_SCALE}`}
+            fill="none"
+            stroke="var(--neon-cyan)"
+            strokeOpacity={0.08}
+            strokeWidth={1}
+          />
+        </pattern>
+      </defs>
+      <rect
+        x={VIEW_X}
+        y={VIEW_Y}
+        width={VIEW_W}
+        height={VIEW_H}
+        fill="url(#floor-grid)"
+      />
+
       {SCALED_PLAIN_ROOMS.map((room, i) => (
         <PlainRoom key={`plain-${i}`} {...room} />
       ))}

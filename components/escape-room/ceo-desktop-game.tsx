@@ -203,10 +203,10 @@ export function CeoDesktopGame({ onExit }: { onExit?: () => void }) {
       {/* z-[55]: por encima de las líneas de escaneo (z-50), así las
           ventanas de la compu se leen nítidas; el resto de la escena
           (fondo cyber, botón Salir) sigue teniendo el efecto CRT. */}
-      <div className="relative z-[55] flex h-full w-full items-center justify-center">
+      <div className="pointer-events-none relative z-[55] flex h-full w-full items-center justify-center">
         {/* Escenario enmarcado, igual al de las conversaciones */}
         <div
-          className="relative flex max-h-full rounded-[1.25rem] border-4 bg-[oklch(0.09_0.04_264/0.55)] p-3 sm:p-4"
+          className="pointer-events-auto relative flex max-h-full rounded-[1.25rem] border-4 bg-[oklch(0.09_0.04_264/0.55)] p-3 sm:p-4"
           style={{
             borderColor: `color-mix(in oklch, ${color} 75%, transparent)`,
             boxShadow: `0 0 35px color-mix(in oklch, ${color} 35%, transparent)`,

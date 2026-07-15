@@ -16,7 +16,7 @@ const CIDI_CONFIG: LabConversationConfig = {
     {
       id: "q1",
       question:
-        "Belén, sos la última en aparecer. El resto del equipo está acá desde las 03:00 AM. ¿Dónde estabas?",
+        "Avril, sos la última en aparecer. El resto del equipo está acá desde las 03:00 AM. ¿Dónde estabas?",
       answer:
         "¡Perdón, no me sonó el despertador! Venía de tres días sin dormir por la presión del proyecto y quedé inconsciente en mi casa. Me enteré del desastre recién al despertar por los mensajes desesperados de Valen.",
     },

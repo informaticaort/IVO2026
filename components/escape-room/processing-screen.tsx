@@ -37,24 +37,37 @@ export function ProcessingScreen({ team }: { team: TeamData }) {
 
         {/* Plano del piso con laboratorios destacados */}
         <div className="flex min-h-0 flex-1 items-center justify-center rounded-[1.5rem] border border-[var(--neon-cyan)]/30 bg-[oklch(0.09_0.04_264/0.72)] p-3 shadow-[0_0_36px_color-mix(in_oklch,var(--neon-cyan)_18%,transparent)] sm:rounded-[2rem] sm:p-4">
-          <div className="flex h-full min-h-0 w-full items-center justify-center overflow-hidden">
+          <div className="flex h-full min-h-0 w-full items-center justify-center overflow-auto">
             <FloorPlan />
           </div>
         </div>
 
         {/* Referencia de laboratorios importantes */}
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 font-mono text-xs text-muted-foreground sm:justify-start">
-          <span>Laboratorios clave</span>
-          <span className="flex flex-wrap items-center gap-x-1 font-semibold">
-            {LEGEND_LABS.map((lab, i) => (
-              <span key={lab} className="flex items-center">
-                <span style={{ color: LAB_COLORS[lab] }}>{lab}</span>
-                {i < LEGEND_LABS.length - 1 ? (
-                  <span className="ml-1 text-muted-foreground">·</span>
-                ) : null}
+        <div className="flex flex-wrap items-center gap-2 font-mono text-xs text-muted-foreground sm:justify-start">
+          <span className="shrink-0">Laboratorios clave</span>
+          <div className="flex flex-wrap items-center gap-1.5">
+            {LEGEND_LABS.map((lab) => (
+              <span
+                key={lab}
+                className="flex items-center gap-1.5 rounded-full border px-2.5 py-1 font-pixel text-[0.6rem] tracking-wide"
+                style={{
+                  color: LAB_COLORS[lab],
+                  borderColor: `color-mix(in oklch, ${LAB_COLORS[lab]} 55%, transparent)`,
+                  backgroundColor: `color-mix(in oklch, ${LAB_COLORS[lab]} 12%, transparent)`,
+                }}
+              >
+                <span
+                  className="size-1.5 rounded-full"
+                  style={{
+                    backgroundColor: LAB_COLORS[lab],
+                    boxShadow: `0 0 6px ${LAB_COLORS[lab]}`,
+                  }}
+                  aria-hidden="true"
+                />
+                {lab}
               </span>
             ))}
-          </span>
+          </div>
         </div>
       </div>
     </CyberFrame>

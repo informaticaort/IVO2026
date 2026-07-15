@@ -88,6 +88,7 @@ export function LabConversation({
   const [speech, setSpeech] = useState<string>(greeting)
   const [asked, setAsked] = useState<string[]>([])
   const [started, setStarted] = useState(false)
+  const [showHistory, setShowHistory] = useState(false)
 
   // Retrato del jugador (equipo) que carga en la pantalla anterior.
   const [player, setPlayer] = useState<{ name: string; avatar: string | null }>(
@@ -107,6 +108,11 @@ export function LabConversation({
 
   const allAsked = asked.length === questions.length
   const remaining = questions.length - asked.length
+
+  // Transcripción de la entrevista, en el orden en que se hicieron las preguntas.
+  const transcript = asked
+    .map((id) => questions.find((q) => q.id === id))
+    .filter((q): q is LabQuestion => Boolean(q))
 
   // Mostramos solo 2 preguntas por vez; al elegir una aparece la siguiente.
   const pending = questions.filter((q) => !asked.includes(q.id))
@@ -142,6 +148,93 @@ export function LabConversation({
       >
         Volver
       </Link>
+
+      {/* Historial de la entrevista: botón cuadrado con puntas redondas,
+          fijo en la esquina inferior derecha de la pantalla. */}
+      <button
+        type="button"
+        onClick={() => setShowHistory(true)}
+        aria-label="Ver historial de la entrevista"
+        title="Ver historial de la entrevista"
+        className="absolute bottom-4 right-4 z-40 flex size-16 items-center justify-center rounded-xl border-2 border-[var(--neon-cyan)]/60 bg-[oklch(0.14_0.04_264/0.7)] text-[var(--neon-cyan)] transition-colors hover:bg-[var(--neon-cyan)] hover:text-background"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="size-8"
+          aria-hidden="true"
+        >
+          <path d="M4 4h16v12H9l-4 4v-4H4z" />
+          <circle cx="8" cy="10" r="1" fill="currentColor" stroke="none" />
+          <circle cx="12" cy="10" r="1" fill="currentColor" stroke="none" />
+          <circle cx="16" cy="10" r="1" fill="currentColor" stroke="none" />
+        </svg>
+      </button>
+
+      {showHistory ? (
+        <div
+          className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+          onClick={() => setShowHistory(false)}
+        >
+          <div
+            role="dialog"
+            aria-label="Historial de la entrevista"
+            onClick={(e) => e.stopPropagation()}
+            className="relative flex h-[80vh] w-full max-w-lg flex-col overflow-hidden rounded-[1.25rem] border-4 bg-[oklch(0.09_0.04_264/0.92)] p-4"
+            style={{
+              borderColor: `color-mix(in oklch, ${color} 75%, transparent)`,
+              boxShadow: `0 0 35px color-mix(in oklch, ${color} 35%, transparent)`,
+            }}
+          >
+            <div className="mb-3 flex shrink-0 items-center justify-between gap-2">
+              <p className="font-pixel text-[0.7rem] uppercase tracking-[0.25em] neon-cyan">
+                Registro de la entrevista
+              </p>
+              <button
+                type="button"
+                onClick={() => setShowHistory(false)}
+                aria-label="Cerrar historial"
+                className="flex size-8 shrink-0 items-center justify-center rounded-md border border-[var(--neon-cyan)]/50 text-[var(--neon-cyan)] transition-colors hover:bg-[var(--neon-cyan)] hover:text-background"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+              {transcript.length === 0 ? (
+                <p className="font-mono text-sm text-muted-foreground">
+                  Todavía no le hiciste ninguna pregunta a {speaker}.
+                </p>
+              ) : (
+                <ul className="flex flex-col gap-3">
+                  {transcript.map((q) => (
+                    <li
+                      key={q.id}
+                      className="flex flex-col gap-1.5 rounded-lg border border-[var(--neon-cyan)]/25 bg-[oklch(0.08_0.04_264/0.6)] p-3"
+                    >
+                      <p className="font-pixel text-[0.6rem] uppercase tracking-wide text-muted-foreground">
+                        Vos
+                      </p>
+                      <p className="font-mono text-sm leading-snug text-foreground/90">
+                        {q.question}
+                      </p>
+                      <p className="font-pixel text-[0.6rem] uppercase tracking-wide neon-cyan">
+                        {speaker}
+                      </p>
+                      <p className="whitespace-pre-line font-mono text-sm leading-snug text-foreground/70">
+                        {q.answer}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <div className="relative z-10 flex h-full w-full items-center justify-center">
         {/* Escenario: la imagen queda fija y el diálogo va superpuesto adentro */}
