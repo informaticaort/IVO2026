@@ -1,7 +1,6 @@
 "use client"
 
-import Link from "next/link"
-import { AlertTriangle, ArrowRight, Lock } from "lucide-react"
+import { AlertTriangle, ArrowRight } from "lucide-react"
 import { CyberFrame } from "./cyber-frame"
 
 export function WelcomeScreen({ onStart }: { onStart: () => void }) {
@@ -70,15 +69,6 @@ export function WelcomeScreen({ onStart }: { onStart: () => void }) {
           <span>COMENZAR</span>
           <ArrowRight className="size-5 shrink-0 transition-transform group-hover:translate-x-1" aria-hidden="true" />
         </button>
-
-        {/* Acceso al panel de monitoreo (para el operador del evento). */}
-        <Link
-          href="/admin"
-          className="inline-flex items-center gap-2 font-mono text-xs text-muted-foreground/70 underline-offset-4 transition-colors hover:text-[var(--neon-cyan)] hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--neon-cyan)] focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-        >
-          <Lock className="size-3.5" aria-hidden="true" />
-          Acceso administrador
-        </Link>
       </div>
     </CyberFrame>
   )
