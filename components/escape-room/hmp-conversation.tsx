@@ -1,6 +1,7 @@
 "use client"
 
 import { LabConversation, type LabConversationConfig } from "./lab-conversation"
+import { HmpSequenceGame } from "./hmp-sequence-game"
 
 /* -------------------------------------------------------------------------
  * CONVERSACIÓN DEL ÁMBITO HMP — Sospechoso: VALEN (Hardware / Realidad Virtual)
@@ -12,6 +13,10 @@ const HMP_CONFIG: LabConversationConfig = {
     "Eh… hola. Soy Valen. Perdón, estoy medio disperso, tengo mil cosas pendientes. Pero dale, preguntá… intento ayudar. Creo.",
   closingSpeech:
     "Ok, ok… arranquemos con los desafíos de realidad virtual. Conecten bien los cables y sigan las secuencias de símbolos. Sí, eso. Bastante seguro.",
+  completedSpeech:
+    "Uf, la secuencia quedó sincronizada y el pendrive recuperó el fragmento de HMP. Ya está, bastante seguro. Podés revisar el registro de la entrevista si querés.",
+  // El juego se muestra dentro del recuadro (como las entrevistas), no fullscreen.
+  framedGame: true,
   questions: [
     {
       id: "q1",
@@ -67,5 +72,12 @@ const HMP_CONFIG: LabConversationConfig = {
 }
 
 export function HmpConversation() {
-  return <LabConversation config={HMP_CONFIG} />
+  return (
+    <LabConversation
+      config={HMP_CONFIG}
+      renderGame={({ exit, complete }) => (
+        <HmpSequenceGame onExit={exit} onWin={complete} />
+      )}
+    />
+  )
 }
