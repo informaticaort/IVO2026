@@ -48,15 +48,15 @@ const HMP_CONFIG: LabConversationConfig = {
       question: "¿Viste algo raro antes de irte?",
       answer:
         "Sí. O sea, creo que sí. " +
-        "Vi a Belen discutiendo con Alex por permisos de acceso. Belen decía que el sistema estaba mal diseñado y que si algo fallaba, iba a ser culpa de Alex. " +
+        "Vi a Belen discutiendo con Avril por permisos de acceso. Belen decía que el sistema estaba mal diseñado y que si algo fallaba, iba a ser culpa de Avril. " +
         "Después vi a Mica intentando calmarlos. Le dijo “por favor” a la IA cuando se trabó la pantalla. No sé si cuenta como raro porque Mica hace eso siempre.",
     },
     {
       id: "q5",
-      question: "¿Creés que Alex pudo haberlo hecho?",
+      question: "¿Creés que Avril pudo haberlo hecho?",
       answer:
-        "No sé. Alex llega tarde, se olvida reuniones, pierde cosas… pero sabotear su propio proyecto me parece mucho. " +
-        "Además, si Alex quisiera romper algo, probablemente llegaría tarde también al sabotaje. " +
+        "No sé. Avril llega tarde, se olvida reuniones, pierde cosas… pero sabotear su propio proyecto me parece mucho. " +
+        "Además, si Avril quisiera romper algo, probablemente llegaría tarde también al sabotaje. " +
         "Perdón, no debería bromear. Estoy nervioso.",
     },
     {

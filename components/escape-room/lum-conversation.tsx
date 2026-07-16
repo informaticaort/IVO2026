@@ -41,9 +41,9 @@ const LUM_CONFIG: LabConversationConfig = {
     },
     {
       id: "q4",
-      question: "¿Quién creés que pudo usar la credencial de Alex?",
+      question: "¿Quién creés que pudo usar la credencial de Avril?",
       answer:
-        "Cualquiera con acceso físico a su escritorio. Alex siempre llega tarde, siempre deja cosas tiradas y siempre dice “después lo ordeno”. " +
+        "Cualquiera con acceso físico a su escritorio. Avril siempre llega tarde, siempre deja cosas tiradas y siempre dice “después lo ordeno”. " +
         "De hecho, su credencial estuvo varias veces arriba de la mesa de reuniones. Lo vi. No porque estuviera espiando, sino porque observo detalles. Hay una diferencia.",
     },
     {

@@ -39,7 +39,7 @@ const CEO_CONFIG: LabConversationConfig = {
       question: "Belen, ¿dónde estabas a las 03:00 AM?",
       answer:
         "En mi casa. Durmiendo, claramente. " +
-        "Aunque si me preguntan, el verdadero problema no es dónde estaba yo, sino por qué el sistema permitió que una credencial como la de Alex pudiera ejecutar algo tan crítico sin una segunda validación. " +
+        "Aunque si me preguntan, el verdadero problema no es dónde estaba yo, sino por qué el sistema permitió que una credencial como la de Avril pudiera ejecutar algo tan crítico sin una segunda validación. " +
         "Pero bueno, eso ya lo había dicho yo antes. Nadie me escuchó.",
     },
     {
@@ -53,9 +53,9 @@ const CEO_CONFIG: LabConversationConfig = {
     },
     {
       id: "q3",
-      question: "¿Cómo era tu relación con Alex?",
+      question: "¿Cómo era tu relación con Avril?",
       answer:
-        "Alex es buen líder cuando llega. El problema es que casi nunca llega a tiempo. " +
+        "Avril es buena líder cuando llega. El problema es que casi nunca llega a tiempo. " +
         "Siempre apurado, siempre improvisando, siempre diciendo “después lo vemos”. Y después, claro, pasan estas cosas. " +
         "Yo le advertí que había que reforzar permisos, revisar accesos y separar responsabilidades. No me hizo caso. " +
         "Ahora todos miran sorprendidos el incendio que yo ya había señalado.",
@@ -79,7 +79,7 @@ const CEO_CONFIG: LabConversationConfig = {
     },
     {
       id: "q6",
-      question: "¿Creés que Alex es culpable?",
+      question: "¿Creés que Avril es culpable?",
       answer:
         "No sé si culpable, pero responsable seguro. " +
         "Su credencial fue usada. Su control falló. Su proyecto explotó. " +

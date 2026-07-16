@@ -13,6 +13,8 @@ import Link from "next/link"
 
 const HMP_VIOLET = "oklch(0.62 0.25 300)"
 
+const PASSWORD = "SINCRO"
+
 // Paleta de símbolos disponibles, cada uno con su color para leerlos fácil.
 const GLYPHS = [
   { char: "▲", color: "var(--neon-cyan)" },
@@ -93,6 +95,20 @@ export function HmpSequenceGame({
                 Los cascos de realidad virtual volvieron a coincidir con las
                 terminales. El pendrive recuperó el fragmento del ámbito HMP.
               </p>
+              <div
+                className="rounded-md border-2 px-6 py-3"
+                style={{
+                  borderColor: "color-mix(in oklch, var(--neon-green) 60%, transparent)",
+                  backgroundColor: "rgba(0,0,0,0.4)",
+                }}
+              >
+                <p className="font-mono text-[0.65rem] uppercase tracking-widest text-white/60">
+                  Contraseña
+                </p>
+                <p className="font-pixel text-3xl tracking-[0.3em] text-[var(--neon-green)]">
+                  {PASSWORD}
+                </p>
+              </div>
               <Link
                 href="/plano"
                 className="rounded-md border-2 border-[var(--neon-green)]/70 bg-[oklch(0.14_0.04_264/0.7)] px-5 py-2 font-pixel text-[0.95rem] text-[var(--neon-green)] transition-colors hover:bg-[var(--neon-green)] hover:text-background"

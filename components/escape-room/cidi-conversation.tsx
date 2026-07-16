@@ -1,6 +1,7 @@
 "use client"
 
 import { LabConversation, type LabConversationConfig } from "./lab-conversation"
+import { CidiFinalGame } from "./cidi-final-game"
 
 /* -------------------------------------------------------------------------
  * CONVERSACIÓN DEL ÁMBITO CIDI — Sospechosa: Avril (Líder del proyecto)
@@ -59,5 +60,12 @@ const CIDI_CONFIG: LabConversationConfig = {
 }
 
 export function CidiConversation() {
-  return <LabConversation config={CIDI_CONFIG} />
+  return (
+    <LabConversation
+      config={CIDI_CONFIG}
+      renderGame={({ exit, complete }) => (
+        <CidiFinalGame onExit={exit} onWin={complete} />
+      )}
+    />
+  )
 }

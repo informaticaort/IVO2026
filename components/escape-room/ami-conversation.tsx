@@ -57,15 +57,15 @@ const AMI_CONFIG: LabConversationConfig = {
       question: "¿Había conflictos en el equipo?",
       answer:
         "Sí. Intenté mediar varias veces. " +
-        "Alex estaba muy presionado porque la presentación se acercaba. Santi se frustraba cuando nadie revisaba los detalles. Valen estaba completamente sobrepasado. Y Belen… Belen se enojaba cuando alguien cuestionaba su código. " +
+        "Avril estaba muy presionada porque la presentación se acercaba. Santi se frustraba cuando nadie revisaba los detalles. Valen estaba completamente sobrepasado. Y Belen… Belen se enojaba cuando alguien cuestionaba su código. " +
         "No creo que nadie sea malo. Pero cuando las personas están cansadas y se sienten atacadas, pueden tomar decisiones horribles.",
     },
     {
       id: "q5",
       question: "¿Viste algo raro antes del sabotaje?",
       answer:
-        "Vi a Belen muy alterada después de una reunión con Alex. Decía que si el sistema fallaba, ella no iba a cargar con la culpa de errores ajenos. " +
-        "También escuché que Alex no encontraba su credencial. Pensé que la había perdido como otras veces, porque siempre llega tarde, se apura y deja cosas por cualquier lado. " +
+        "Vi a Belen muy alterada después de una reunión con Avril. Decía que si el sistema fallaba, ella no iba a cargar con la culpa de errores ajenos. " +
+        "También escuché que Avril no encontraba su credencial. Pensé que la había perdido como otras veces, porque siempre llega tarde, se apura y deja cosas por cualquier lado. " +
         "Ahora me preocupa que alguien se haya aprovechado de eso.",
     },
     {
