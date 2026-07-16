@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
+import { LAB_COLORS } from "./floor-plan"
 
 /* -------------------------------------------------------------------------
  * JUEGO FINAL DEL ÁMBITO CIDI — Desinfección de la IA + rueda de sospechosos
@@ -48,17 +49,48 @@ const LAYERS: { id: LayerId; label: string; hint: string; password: string }[] =
   },
 ]
 
-type Suspect = { id: string; name: string; role: string; image: string }
+type Suspect = {
+  id: string
+  name: string
+  role: keyof typeof LAB_COLORS
+  /** Centro (en px) del recorte cuadrado de esta persona, usado en el zoom de confirmación. */
+  cropX: number
+  /** Rango horizontal (en px) que ocupa esta persona en la imagen completa, usado para el cover clickeable. */
+  slot: [number, number]
+}
 
+/* Los 5 sospechosos aparecen todos juntos en una única rueda de
+ * reconocimiento (CulpablePixelArt.png, 1672x941). `slot` divide el ancho
+ * completo de la imagen en 5 franjas (una por persona, de punta a punta)
+ * para el cover clickeable; `cropX` ubica el recorte cuadrado de 260px de
+ * esa persona para el zoom de confirmación. */
 const SUSPECTS: Suspect[] = [
-  { id: "mica", name: "Mica", role: "AMI", image: "/images/AmiPixelArt.png" },
-  { id: "valen", name: "Valen", role: "HMP", image: "/images/HmpPixelArt.png" },
-  { id: "belen", name: "Belen", role: "CEO", image: "/images/CeoPixelArt.png" },
-  { id: "santi", name: "Santi", role: "LUM", image: "/images/LumPixelArt.png" },
-  { id: "avril", name: "Avril", role: "CIDI", image: "/images/CidiPixelArt.png" },
+  { id: "mica", name: "Mica", role: "AMI", cropX: 330, slot: [0, 552.5] },
+  { id: "belen", name: "Belen", role: "CEO", cropX: 515, slot: [552.5, 740] },
+  { id: "valen", name: "Valen", role: "HMP", cropX: 705, slot: [740, 935] },
+  { id: "avril", name: "Avril", role: "CIDI", cropX: 905, slot: [935, 1127.5] },
+  { id: "santi", name: "Santi", role: "LUM", cropX: 1090, slot: [1127.5, 1672] },
 ]
 
 const CULPRIT_ID = "belen"
+
+const LINEUP_IMAGE = "/images/CulpablePixelArt.png"
+const LINEUP_SIZE = { w: 1672, h: 941 }
+const LINEUP_CROP = { w: 260, h: 260, y: 140 }
+
+/** Estilo de fondo que recorta el retrato de un sospechoso dentro de la rueda. */
+function suspectPortraitStyle(cropX: number): React.CSSProperties {
+  const sizeX = (LINEUP_SIZE.w / LINEUP_CROP.w) * 100
+  const sizeY = (LINEUP_SIZE.h / LINEUP_CROP.h) * 100
+  const posX = (cropX / (LINEUP_SIZE.w - LINEUP_CROP.w)) * 100
+  const posY = (LINEUP_CROP.y / (LINEUP_SIZE.h - LINEUP_CROP.h)) * 100
+  return {
+    backgroundImage: `url(${LINEUP_IMAGE})`,
+    backgroundSize: `${sizeX}% ${sizeY}%`,
+    backgroundPosition: `${posX}% ${posY}%`,
+    backgroundRepeat: "no-repeat",
+  }
+}
 
 const COMPLETION_LINES = [
   { text: "Validando estructura del sistema...", bar: 6 },
@@ -88,6 +120,7 @@ export function CidiFinalGame({
     hardware: "",
   })
   const [completionLine, setCompletionLine] = useState(0)
+  const [hoveredSuspectId, setHoveredSuspectId] = useState<string | null>(null)
   const [zoomedId, setZoomedId] = useState<string | null>(null)
   const [wrongMessage, setWrongMessage] = useState<string | null>(null)
 
@@ -168,7 +201,7 @@ export function CidiFinalGame({
         </div>
       ) : phase === "lineup" ? (
         /* --------------------------- RUEDA DE SOSPECHOSOS --------------------------- */
-        <div className="relative mx-auto flex min-h-full max-w-4xl flex-col items-center justify-center gap-6 py-6 text-white">
+        <div className="relative mx-auto flex min-h-full w-full flex-col items-center justify-center gap-6 py-6 text-white">
           <div className="text-center">
             <p className="font-pixel text-lg uppercase tracking-widest text-[var(--neon-green)] sm:text-xl">
               Identifiquen al saboteador
@@ -179,39 +212,53 @@ export function CidiFinalGame({
             </p>
           </div>
 
-          <div
-            className="grid w-full grid-cols-2 gap-4 rounded-xl border-2 border-white/15 p-4 sm:grid-cols-5"
-            style={{
-              backgroundImage:
-                "repeating-linear-gradient(to bottom, rgba(255,255,255,0.05) 0, rgba(255,255,255,0.05) 1px, transparent 1px, transparent 24px)",
-              backgroundColor: "rgba(0,0,0,0.35)",
-            }}
-          >
-            {SUSPECTS.map((s, i) => (
-              <button
-                key={s.id}
-                type="button"
-                onClick={() => openZoom(s.id)}
-                className="group flex flex-col items-center gap-1.5 rounded-lg border-2 border-white/20 bg-black/30 p-2 transition-colors hover:border-[var(--neon-cyan)]/70"
-              >
-                <span className="relative block aspect-square w-full overflow-hidden rounded-md">
-                  <Image
-                    src={s.image}
-                    alt={`Retrato de ${s.name}`}
-                    fill
-                    sizes="200px"
-                    className="object-cover object-top transition-transform duration-200 group-hover:scale-105"
-                  />
-                </span>
-                <span className="font-pixel text-[0.6rem] text-white/50">
-                  SOSPECHOSO {i + 1}
-                </span>
-                <span className="font-mono text-sm text-white/90">{s.name}</span>
-                <span className="font-mono text-[0.7rem] uppercase tracking-widest text-white/50">
-                  {s.role}
-                </span>
-              </button>
-            ))}
+          {/* Mismo marco (borde, tamaño y encuadre) que el retrato de las
+              entrevistas de cada ámbito, para mantener consistencia visual. */}
+          <div className="relative flex max-h-full rounded-[1.25rem] border-4 border-blue-500 bg-[oklch(0.09_0.04_264/0.55)] p-3 sm:p-4">
+            <div className="relative">
+              <Image
+                src={LINEUP_IMAGE}
+                alt="Rueda de reconocimiento con los cinco sospechosos"
+                width={960}
+                height={960}
+                priority
+                className="max-h-[92vh] w-auto rounded-[1rem] object-contain"
+              />
+
+              {SUSPECTS.map((s) => {
+                const accent = LAB_COLORS[s.role]
+                const [x0, x1] = s.slot
+                const left = (x0 / LINEUP_SIZE.w) * 100
+                const width = ((x1 - x0) / LINEUP_SIZE.w) * 100
+                const isHovered = hoveredSuspectId === s.id
+                return (
+                  <button
+                    key={s.id}
+                    type="button"
+                    onClick={() => openZoom(s.id)}
+                    onMouseEnter={() => setHoveredSuspectId(s.id)}
+                    onMouseLeave={() => setHoveredSuspectId(null)}
+                    onFocus={() => setHoveredSuspectId(s.id)}
+                    onBlur={() => setHoveredSuspectId(null)}
+                    aria-label={`Seleccionar a ${s.name}, ámbito ${s.role}`}
+                    className="absolute inset-y-0 flex flex-col items-center justify-end pb-3"
+                    style={{ left: `${left}%`, width: `${width}%` }}
+                  >
+                    {/* La imagen mantiene siempre su color original: el borde
+                        del ámbito solo aparece al pasar el mouse, antes de
+                        presionar. */}
+                    <span
+                      aria-hidden
+                      className="pointer-events-none absolute inset-0 rounded-md border-4 transition-colors duration-150"
+                      style={{ borderColor: isHovered ? accent : "transparent" }}
+                    />
+                    <span className="relative rounded bg-black/70 px-2 py-0.5 font-mono text-[0.65rem] uppercase tracking-widest text-white">
+                      {s.name}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
           </div>
 
           <div className="min-h-[2rem]">
@@ -234,15 +281,12 @@ export function CidiFinalGame({
                 onClick={(e) => e.stopPropagation()}
                 className="flex w-full max-w-sm flex-col items-center gap-4 rounded-xl border-4 border-[var(--neon-cyan)]/70 bg-[oklch(0.09_0.04_264/0.95)] p-5 text-center shadow-[0_0_45px_color-mix(in_oklch,var(--neon-cyan)_35%,transparent)]"
               >
-                <span className="relative block aspect-square w-full overflow-hidden rounded-lg border-2 border-white/20">
-                  <Image
-                    src={zoomedSuspect.image}
-                    alt={`Retrato ampliado de ${zoomedSuspect.name}`}
-                    fill
-                    sizes="360px"
-                    className="object-cover object-top"
-                  />
-                </span>
+                <span
+                  role="img"
+                  aria-label={`Retrato ampliado de ${zoomedSuspect.name}`}
+                  className="relative block aspect-square w-full overflow-hidden rounded-lg border-2 border-white/20"
+                  style={suspectPortraitStyle(zoomedSuspect.cropX)}
+                />
                 <div>
                   <p className="font-pixel text-lg text-[var(--neon-cyan)]">
                     {zoomedSuspect.name}
