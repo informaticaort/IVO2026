@@ -33,7 +33,7 @@ const LAYERS: { id: LayerId; label: string; hint: string; password: string }[] =
     id: "logica",
     label: "Capa 2 · Lógica",
     hint: "Las reglas y decisiones que mueven el sistema.",
-    password: "LIBERAR",
+    password: "HACK3D",
   },
   {
     id: "datos",
@@ -53,44 +53,22 @@ type Suspect = {
   id: string
   name: string
   role: keyof typeof LAB_COLORS
-  /** Centro (en px) del recorte cuadrado de esta persona, usado en el zoom de confirmación. */
-  cropX: number
-  /** Rango horizontal (en px) que ocupa esta persona en la imagen completa, usado para el cover clickeable. */
-  slot: [number, number]
+  /** Retrato individual de la persona (…PixelArt.png, 1024x1536), usado tanto en
+   * el botón de la rueda como en el zoom de confirmación. */
+  image: string
 }
 
-/* Los 5 sospechosos aparecen todos juntos en una única rueda de
- * reconocimiento (CulpablePixelArt.png, 1672x941). `slot` divide el ancho
- * completo de la imagen en 5 franjas (una por persona, de punta a punta)
- * para el cover clickeable; `cropX` ubica el recorte cuadrado de 260px de
- * esa persona para el zoom de confirmación. */
 const SUSPECTS: Suspect[] = [
-  { id: "mica", name: "Mica", role: "AMI", cropX: 330, slot: [0, 552.5] },
-  { id: "belen", name: "Belen", role: "CEO", cropX: 515, slot: [552.5, 740] },
-  { id: "valen", name: "Valen", role: "HMP", cropX: 705, slot: [740, 935] },
-  { id: "avril", name: "Avril", role: "CIDI", cropX: 905, slot: [935, 1127.5] },
-  { id: "santi", name: "Santi", role: "LUM", cropX: 1090, slot: [1127.5, 1672] },
+  { id: "mica", name: "Mica", role: "AMI", image: "/images/MicaPixelArt.png" },
+  { id: "belen", name: "Belen", role: "CEO", image: "/images/BelenPixelArt.png" },
+  { id: "valen", name: "Valen", role: "HMP", image: "/images/ValenPixelArt.png" },
+  { id: "avril", name: "Avril", role: "CIDI", image: "/images/AvrilPixelArt.png" },
+  { id: "santi", name: "Santi", role: "LUM", image: "/images/SantiPixelArt.png" },
 ]
 
 const CULPRIT_ID = "belen"
 
-const LINEUP_IMAGE = "/images/CulpablePixelArt.png"
-const LINEUP_SIZE = { w: 1672, h: 941 }
-const LINEUP_CROP = { w: 260, h: 260, y: 140 }
-
-/** Estilo de fondo que recorta el retrato de un sospechoso dentro de la rueda. */
-function suspectPortraitStyle(cropX: number): React.CSSProperties {
-  const sizeX = (LINEUP_SIZE.w / LINEUP_CROP.w) * 100
-  const sizeY = (LINEUP_SIZE.h / LINEUP_CROP.h) * 100
-  const posX = (cropX / (LINEUP_SIZE.w - LINEUP_CROP.w)) * 100
-  const posY = (LINEUP_CROP.y / (LINEUP_SIZE.h - LINEUP_CROP.h)) * 100
-  return {
-    backgroundImage: `url(${LINEUP_IMAGE})`,
-    backgroundSize: `${sizeX}% ${sizeY}%`,
-    backgroundPosition: `${posX}% ${posY}%`,
-    backgroundRepeat: "no-repeat",
-  }
-}
+const LINEUP_BG = "/images/FondoCulpablePixelArt.png"
 
 const COMPLETION_LINES = [
   { text: "Validando estructura del sistema...", bar: 6 },
@@ -201,35 +179,46 @@ export function CidiFinalGame({
         </div>
       ) : phase === "lineup" ? (
         /* --------------------------- RUEDA DE SOSPECHOSOS --------------------------- */
-        <div className="relative mx-auto flex min-h-full w-full flex-col items-center justify-center gap-6 py-6 text-white">
-          <div className="text-center">
+        <div className="relative flex h-full w-full items-center justify-center text-white">
+          {/* Título e instrucciones flotan arriba sin ocupar espacio de layout,
+              para que el recuadro de la imagen tenga el mismo tamaño (centrado
+              a pantalla completa) que el retrato de las entrevistas. */}
+          <div className="absolute inset-x-0 top-4 z-20 px-4 text-center sm:px-28">
             <p className="font-pixel text-lg uppercase tracking-widest text-[var(--neon-green)] sm:text-xl">
               Identifiquen al saboteador
             </p>
-            <p className="mt-2 max-w-xl font-mono text-sm text-white/80 sm:text-base">
+            <p className="mx-auto mt-2 max-w-xl rounded-md bg-black/60 px-3 py-1.5 font-mono text-sm text-white backdrop-blur-sm sm:text-base">
               La IA está desinfectada. Toquen un retrato para verlo de cerca y
               confirmen la acusación cuando estén seguros.
             </p>
           </div>
 
           {/* Mismo marco (borde, tamaño y encuadre) que el retrato de las
-              entrevistas de cada ámbito, para mantener consistencia visual. */}
-          <div className="relative flex max-h-full rounded-[1.25rem] border-4 border-blue-500 bg-[oklch(0.09_0.04_264/0.55)] p-3 sm:p-4">
-            <div className="relative">
-              <Image
-                src={LINEUP_IMAGE}
-                alt="Rueda de reconocimiento con los cinco sospechosos"
-                width={960}
-                height={960}
-                priority
-                className="max-h-[92vh] w-auto rounded-[1rem] object-contain"
+              entrevistas de cada ámbito, para mantener consistencia visual.
+              La imagen invisible de abajo solo reserva el tamaño exacto del
+              recuadro (igual que en la conversación de AMI); el fondo real y
+              los sospechosos se dibujan encima. Cada sospechoso es su propio
+              retrato: el borde de acento rodea justo esa imagen, no un
+              recuadro gigante compartido. */}
+          <div className="relative flex max-h-full rounded-[1.25rem] border-4 border-blue-500 p-3 sm:p-4">
+            <Image
+              src={LINEUP_BG}
+              alt=""
+              aria-hidden
+              width={960}
+              height={960}
+              className="max-h-[92vh] w-auto rounded-[1rem] object-contain opacity-0"
+            />
+            <div
+              className="absolute inset-0 flex items-end justify-center gap-0 overflow-hidden rounded-[1rem] bg-cover bg-center bg-no-repeat p-3 pb-32 sm:p-4 sm:pb-48"
+              style={{ backgroundImage: `url(${LINEUP_BG})` }}
+            >
+              <div
+                aria-hidden
+                className="pointer-events-none absolute inset-0 bg-[oklch(0.09_0.04_264/0.45)]"
               />
-
               {SUSPECTS.map((s) => {
                 const accent = LAB_COLORS[s.role]
-                const [x0, x1] = s.slot
-                const left = (x0 / LINEUP_SIZE.w) * 100
-                const width = ((x1 - x0) / LINEUP_SIZE.w) * 100
                 const isHovered = hoveredSuspectId === s.id
                 return (
                   <button
@@ -241,18 +230,28 @@ export function CidiFinalGame({
                     onFocus={() => setHoveredSuspectId(s.id)}
                     onBlur={() => setHoveredSuspectId(null)}
                     aria-label={`Seleccionar a ${s.name}, ámbito ${s.role}`}
-                    className="absolute inset-y-0 flex flex-col items-center justify-end pb-3"
-                    style={{ left: `${left}%`, width: `${width}%` }}
+                    className="relative flex h-full w-[13%] shrink-0 flex-col items-center justify-end gap-1 first:ml-0 -ml-4 sm:-ml-6"
                   >
-                    {/* La imagen mantiene siempre su color original: el borde
-                        del ámbito solo aparece al pasar el mouse, antes de
-                        presionar. */}
-                    <span
-                      aria-hidden
-                      className="pointer-events-none absolute inset-0 rounded-md border-4 transition-colors duration-150"
-                      style={{ borderColor: isHovered ? accent : "transparent" }}
+                    {/* Los PNG son de fondo transparente: el highlight del
+                        ámbito se dibuja con drop-shadow, que sigue el contorno
+                        real del personaje en vez de encerrarlo en un recuadro.
+                        Ancho fijo (no flex-1) para que el grupo quede más
+                        junto y centrado sobre el fondo, sin estirarse de
+                        punta a punta del recuadro. */}
+                    <Image
+                      src={s.image}
+                      alt={`Retrato de ${s.name}`}
+                      width={340}
+                      height={510}
+                      priority
+                      className="max-h-full w-full object-contain transition-[filter] duration-150"
+                      style={{
+                        filter: isHovered
+                          ? `drop-shadow(2px 0 0 ${accent}) drop-shadow(-2px 0 0 ${accent}) drop-shadow(0 2px 0 ${accent}) drop-shadow(0 -2px 0 ${accent}) drop-shadow(0 0 10px ${accent})`
+                          : undefined,
+                      }}
                     />
-                    <span className="relative rounded bg-black/70 px-2 py-0.5 font-mono text-[0.65rem] uppercase tracking-widest text-white">
+                    <span className="rounded bg-black/70 px-2 py-0.5 font-mono text-[0.65rem] uppercase tracking-widest text-white">
                       {s.name}
                     </span>
                   </button>
@@ -261,13 +260,13 @@ export function CidiFinalGame({
             </div>
           </div>
 
-          <div className="min-h-[2rem]">
-            {wrongMessage ? (
-              <p className="rounded-md border border-[var(--neon-red)]/50 bg-black/40 px-4 py-2 text-center font-pixel text-xs text-[var(--neon-red)]">
+          {wrongMessage ? (
+            <div className="absolute inset-x-0 bottom-4 z-20 flex justify-center px-4">
+              <p className="rounded-md border border-[var(--neon-red)]/50 bg-black/80 px-4 py-2 text-center font-pixel text-xs text-[var(--neon-red)]">
                 {wrongMessage}
               </p>
-            ) : null}
-          </div>
+            </div>
+          ) : null}
 
           {/* Overlay de confirmación: pixel art ampliado */}
           {zoomedSuspect ? (
@@ -281,12 +280,15 @@ export function CidiFinalGame({
                 onClick={(e) => e.stopPropagation()}
                 className="flex w-full max-w-sm flex-col items-center gap-4 rounded-xl border-4 border-[var(--neon-cyan)]/70 bg-[oklch(0.09_0.04_264/0.95)] p-5 text-center shadow-[0_0_45px_color-mix(in_oklch,var(--neon-cyan)_35%,transparent)]"
               >
-                <span
-                  role="img"
-                  aria-label={`Retrato ampliado de ${zoomedSuspect.name}`}
-                  className="relative block aspect-square w-full overflow-hidden rounded-lg border-2 border-white/20"
-                  style={suspectPortraitStyle(zoomedSuspect.cropX)}
-                />
+                <div className="relative w-full max-w-[220px] overflow-hidden rounded-lg border-2 border-white/20">
+                  <Image
+                    src={zoomedSuspect.image}
+                    alt={`Retrato ampliado de ${zoomedSuspect.name}`}
+                    width={340}
+                    height={510}
+                    className="h-auto w-full object-cover"
+                  />
+                </div>
                 <div>
                   <p className="font-pixel text-lg text-[var(--neon-cyan)]">
                     {zoomedSuspect.name}
