@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, type ReactNode } from "react"
 import Link from "next/link"
 
 /* -------------------------------------------------------------------------
@@ -109,6 +109,23 @@ const COMPLETION_LINES = [
 
 function bar(n: number, total = 15) {
   return "█".repeat(n) + "░".repeat(Math.max(0, total - n))
+}
+
+/* --------------------------- Recuadro estilo LUM (borde rojo) --------------------------- */
+
+/** Mismo borde rojo que el retrato de LUM en la conversación, capado a la
+ * misma altura máxima (92vh). El ancho lo define el contenido (o el
+ * className que le pase cada pantalla): a diferencia del retrato, acá adentro
+ * va un dashboard "ancho", así que forzarlo a un recuadro cuadrado lo
+ * aplastaba en vez de agrandarlo. */
+function FramedPanel({ children, className = "" }: { children: ReactNode; className?: string }) {
+  return (
+    <div
+      className={`flex max-h-[92vh] flex-col overflow-y-auto rounded-[1.25rem] border-4 border-[var(--neon-red)]/75 bg-[oklch(0.09_0.04_264/0.55)] p-3 shadow-[0_0_35px_color-mix(in_oklch,var(--neon-red)_35%,transparent)] sm:p-4 ${className}`}
+    >
+      {children}
+    </div>
+  )
 }
 
 /* ------------------------------- Ícono de agarre ------------------------------- */
@@ -514,7 +531,7 @@ export function LumDesignGame({
         </div>
       ) : (
         /* ------------------------------ JUEGO ------------------------------ */
-        <div className="relative mx-auto flex min-h-full max-w-5xl flex-col gap-2 py-1 text-white">
+        <div className="relative mx-auto flex min-h-full max-w-7xl flex-col gap-2 py-1 text-white">
           <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-white/10 bg-black/30 px-4 py-2">
             <p className="font-pixel text-sm uppercase tracking-widest text-[var(--neon-cyan)] sm:text-base">
               Portal de ADDE Labs — LUM
@@ -558,26 +575,30 @@ export function LumDesignGame({
             </ul>
           </div>
 
-          {/* TU REPARACIÓN: única interfaz visible durante el juego, a escala real. */}
+          {/* TU REPARACIÓN: única interfaz visible durante el juego, a escala real.
+              Mismo marco (tamaño y borde rojo) que el retrato de LUM en la conversación. */}
           <div className="flex min-h-0 flex-1 flex-col gap-2">
             <p className="font-pixel text-sm uppercase tracking-wide text-[var(--neon-green)]">Tu reparación</p>
-            <div className="grid grid-cols-1 items-start gap-3 sm:grid-cols-[minmax(0,1fr)_140px]">
-              <DesignPreview
-                state={designState}
-                interactive={interactive}
-                pulse={pulse}
-                onChange={handleChange}
-                onCommit={handleCommit}
-              />
-              <ColorPalette value={designState.theme} interactive={interactive} pulse={pulse} onSelect={selectTheme} />
-            </div>
+            <FramedPanel className="w-full">
+              <div className="grid grid-cols-1 items-start gap-3 sm:grid-cols-[minmax(0,1fr)_140px]">
+                <DesignPreview
+                  state={designState}
+                  interactive={interactive}
+                  pulse={pulse}
+                  onChange={handleChange}
+                  onCommit={handleCommit}
+                />
+                <ColorPalette value={designState.theme} interactive={interactive} pulse={pulse} onSelect={selectTheme} />
+              </div>
+            </FramedPanel>
           </div>
 
-          {/* --------------------------- SISTEMA DE REFERENCIA --------------------------- */}
+          {/* --------------------------- SISTEMA DE REFERENCIA ---------------------------
+              Mismo marco (tamaño y borde rojo) que el retrato de LUM en la conversación. */}
           {showReference ? (
             <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/90 p-4">
-              <div className="flex max-h-[90vh] w-[90vw] max-w-[1100px] flex-col items-center gap-3 overflow-y-auto rounded-2xl border-4 border-[var(--neon-cyan)]/70 bg-[oklch(0.1_0.04_264/0.98)] p-5 text-center shadow-[0_0_50px_color-mix(in_oklch,var(--neon-cyan)_35%,transparent)]">
-                <p className="font-pixel text-xl text-[var(--neon-cyan)] sm:text-2xl">SISTEMA DE REFERENCIA</p>
+              <FramedPanel className="w-[95vw] max-w-[1600px] items-center gap-3 text-center">
+                <p className="font-pixel text-xl text-[var(--neon-red)] sm:text-2xl">SISTEMA DE REFERENCIA</p>
                 <p className="font-mono text-sm text-white/80 sm:text-base">
                   La IA corrompió la interfaz de ADDE Labs. Observá bien este sistema original: vas a
                   tener que reconstruir la interfaz dañada hasta que coincida con esta referencia.
@@ -592,7 +613,7 @@ export function LumDesignGame({
                 >
                   {hasStarted ? "VOLVER A LA REPARACIÓN" : "COMENZAR REPARACIÓN"}
                 </button>
-              </div>
+              </FramedPanel>
             </div>
           ) : null}
 
