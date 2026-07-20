@@ -81,21 +81,21 @@ const FRAGMENT_CODE = "H4CK3D"
 // Contraseña que bloqueó la IA corrupta sobre VS Code (se revela en ADDE Labs).
 const VSCODE_PASSWORD = "LIBERAR"
 
-// Posiciones de los íconos sobre CeoDesktopPixelArt.png (en % de la imagen).
+// Posiciones de los íconos sobre Escritorio.png (en % de la imagen). Los
+// cuatro están en una sola columna a la izquierda; cada área cubre el ícono
+// más su etiqueta, como el rectángulo de selección de un escritorio real.
 const ICONS = {
-  papelera: { left: "11.96%", top: "11.16%", width: "6.58%", height: "12.22%" },
-  labs: { left: "11.96%", top: "24.44%", width: "6.88%", height: "12.75%" },
-  chrome: { left: "11.07%", top: "37.51%", width: "8.37%", height: "12.97%" },
-  vscode: { left: "54.13%", top: "9.78%", width: "8.37%", height: "15.94%" },
+  papelera: { left: "3.11%", top: "1.91%", width: "7.18%", height: "17.21%" },
+  vscode: { left: "1.50%", top: "23.59%", width: "10.35%", height: "20.83%" },
+  chrome: { left: "1.08%", top: "46.55%", width: "11.18%", height: "17.43%" },
+  labs: { left: "2.09%", top: "68.55%", width: "9.15%", height: "19.45%" },
 }
 
-// Área "de trabajo" del escritorio (dentro del bisel negro, por encima de la
-// barra de tareas) sobre la misma imagen: ahí adentro se recortan y centran
-// las "ventanas" de las apps, tomando la barra de tareas como límite inferior
-// en vez del borde de la pantalla. Medida en la imagen: la pantalla arranca
-// en 9.25% de alto y la barra de tareas en 53.46%, así que el área de
-// trabajo ocupa esa franja intermedia (44.21% de alto).
-const WORK_AREA = { left: "10.41%", top: "9.25%", width: "52.81%", height: "44.21%" }
+// Área "de trabajo" del escritorio: ahí adentro se centran las "ventanas" de
+// las apps. Escritorio.png es la pantalla completa (sin bisel ni barra de
+// tareas), así que el área arranca a la derecha de la columna de íconos y
+// deja un margen parejo contra el borde del recuadro.
+const WORK_AREA = { left: "15%", top: "8%", width: "80%", height: "80%" }
 
 type WindowKind = "papelera" | "labs" | "chrome" | "vscode" | null
 
@@ -355,26 +355,28 @@ function RecycleBinWindow({
   onClose: () => void
 }) {
   return (
-    <div
-      className="absolute z-10 flex items-center justify-center overflow-hidden"
-      style={WORK_AREA}
-    >
-      <div className="relative h-full">
+    // inset-0: la papelera ocupa todo el recuadro del ámbito, no el área de
+    // trabajo del escritorio. Papelera.png y Escritorio.png miden lo mismo
+    // (1672x941), así que la captura calza exacta sobre el escritorio y los
+    // botones de abajo —en % de este div— quedan sobre sus controles reales.
+    <div className="absolute inset-0 z-10 overflow-hidden rounded-[1rem]">
+      <div className="relative h-full w-full">
         <Image
           src="/images/Papelera.png"
           alt="Papelera de reciclaje de Windows con el archivo lógica_página eliminado"
           width={1672}
           height={941}
-          className="h-full w-auto select-none object-contain shadow-[0_3px_14px_rgba(0,0,0,0.45)]"
+          className="h-full w-full select-none object-fill"
         />
 
-        {/* Cerrar: superpuesta sobre la X de la captura */}
+        {/* Cerrar: superpuesta sobre la X roja de la captura. Al pasar el
+            mouse se aclara, como el botón real de Windows. */}
         <button
           type="button"
           onClick={onClose}
           aria-label="Cerrar ventana"
-          className="absolute"
-          style={{ left: "93.9%", top: "0%", width: "6.1%", height: "6.8%" }}
+          className="absolute cursor-pointer rounded-sm outline-none transition-colors hover:bg-white/30 focus-visible:bg-white/30"
+          style={{ left: "95.75%", top: "1.38%", width: "3.47%", height: "3.83%" }}
         />
 
         {/* Ícono + nombre del archivo eliminado: seleccionable con un clic */}
@@ -395,7 +397,9 @@ function RecycleBinWindow({
           style={{ left: "28.7%", top: "27.1%", width: "15.6%", height: "38.3%" }}
         />
 
-        {/* Restaurar: superpuesta sobre el botón real de la barra de herramientas */}
+        {/* Restaurar: superpuesta sobre el botón real de la barra de
+            herramientas. Solo se resalta cuando hay algo seleccionado, igual
+            que un botón deshabilitado de la barra en Windows. */}
         <button
           type="button"
           onClick={() => {
@@ -403,8 +407,12 @@ function RecycleBinWindow({
           }}
           aria-disabled={!fileSelected}
           aria-label="Restaurar el elemento seleccionado"
-          className={`absolute ${fileSelected ? "cursor-pointer" : "cursor-not-allowed"}`}
-          style={{ left: "78.3%", top: "16.5%", width: "10.2%", height: "7.4%" }}
+          className={`absolute rounded-sm outline-none transition-colors ${
+            fileSelected
+              ? "cursor-pointer hover:bg-[#cce8ff]/70 hover:shadow-[inset_0_0_0_1px_#99d1ff] focus-visible:bg-[#cce8ff]/70 focus-visible:shadow-[inset_0_0_0_1px_#99d1ff]"
+              : "cursor-not-allowed"
+          }`}
+          style={{ left: "78.05%", top: "18.06%", width: "10.77%", height: "4.78%" }}
         />
       </div>
     </div>
@@ -481,7 +489,7 @@ export function CeoDesktopGame({
         <button
           type="button"
           onClick={onExit}
-          className="absolute right-4 top-4 z-40 rounded-md border-2 border-[var(--neon-cyan)]/60 bg-[oklch(0.14_0.04_264/0.7)] px-4 py-2 font-pixel text-xs text-[var(--neon-cyan)] transition-colors hover:bg-[var(--neon-cyan)] hover:text-background"
+          className="absolute right-4 top-4 z-[60] rounded-md border-2 border-[var(--neon-cyan)]/60 bg-[oklch(0.14_0.04_264/0.7)] px-4 py-2 font-pixel text-xs text-[var(--neon-cyan)] transition-colors hover:bg-[var(--neon-cyan)] hover:text-background"
         >
           Salir
         </button>
@@ -491,7 +499,11 @@ export function CeoDesktopGame({
           ventanas de la compu se leen nítidas; el resto de la escena
           (fondo cyber, botón Salir) sigue teniendo el efecto CRT. */}
       <div className="pointer-events-none relative z-[55] flex h-full w-full items-center justify-center">
-        {/* Escenario enmarcado, igual al de las conversaciones */}
+        {/* Escenario enmarcado, mismo marco (borde, tamaño y encuadre) que el
+            retrato de las entrevistas y que la rueda de reconocimiento del
+            CIDI, para mantener consistencia visual entre ámbitos. El div
+            interno se ajusta exactamente a la imagen, así los hotspots de los
+            íconos —definidos en % de la imagen— calzan siempre. */}
         <div
           className="pointer-events-auto relative flex max-h-full rounded-[1.25rem] border-4 bg-[oklch(0.09_0.04_264/0.55)] p-3 sm:p-4"
           style={{
@@ -501,8 +513,8 @@ export function CeoDesktopGame({
         >
           <div className="relative">
             <Image
-              src="/images/CeoDesktopPixelArt.png"
-              alt="Escritorio de la computadora, con la papelera, ADDE Labs y Google Chrome"
+              src="/images/Escritorio.png"
+              alt="Escritorio de la computadora, con la papelera, Visual Studio Code, Google Chrome y ADDE Labs"
               width={1672}
               height={941}
               priority
