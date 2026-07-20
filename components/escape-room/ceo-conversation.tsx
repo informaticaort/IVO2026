@@ -56,7 +56,7 @@ const CEO_CONFIG: LabConversationConfig = {
       question: "¿Cómo era tu relación con Avril?",
       answer:
         "Avril es buena líder cuando llega. El problema es que casi nunca llega a tiempo. " +
-        "Siempre apurado, siempre improvisando, siempre diciendo “después lo vemos”. Y después, claro, pasan estas cosas. " +
+        "Siempre apurada, siempre improvisando, siempre diciendo “después lo vemos”. Y después, claro, pasan estas cosas. " +
         "Yo le advertí que había que reforzar permisos, revisar accesos y separar responsabilidades. No me hizo caso. " +
         "Ahora todos miran sorprendidos el incendio que yo ya había señalado.",
     },
@@ -74,8 +74,8 @@ const CEO_CONFIG: LabConversationConfig = {
       answer:
         "Porque el equipo se equivoca y alguien tiene que decirlo. " +
         "Santi se obsesiona con detalles mínimos. Valen vive colapsado, entonces deja cosas a medias. Mica le habla a la IA como si fuera una mascota. " +
-        "Yo soy el único que se toma en serio la arquitectura del sistema. " +
-        "Y ahora resulta que por tener razón soy sospechoso. Re heavy re pesado.",
+        "Yo soy la única que se toma en serio la arquitectura del sistema. " +
+        "Y ahora resulta que por tener razón soy sospechosa, re heavy, re pesado.",
     },
     {
       id: "q6",
@@ -83,7 +83,7 @@ const CEO_CONFIG: LabConversationConfig = {
       answer:
         "No sé si culpable, pero responsable seguro. " +
         "Su credencial fue usada. Su control falló. Su proyecto explotó. " +
-        "¿Que alguien pudo haberle robado el acceso? Sí, obvio. Pero eso también habla mal de él. " +
+        "¿Que alguien pudo haberle robado el acceso? Sí, obvio. Pero eso también habla mal de ella. " +
         "En programación hay una regla básica: si tu sistema permite un desastre, el desastre también es parte de tu diseño.",
     },
   ],

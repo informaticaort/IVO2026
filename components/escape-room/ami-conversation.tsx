@@ -42,7 +42,7 @@ const AMI_CONFIG: LabConversationConfig = {
       answer:
         "Porque no cuesta nada ser amable. " +
         "Cada vez que escribo un prompt, saludo y agradezco. “¡Hola! ¿Cómo estás? ¿Podrías ayudarme con esto? Muchas gracias.” " +
-        "No sé si la IA lo siente, pero las personas que trabajan conmigo sí. Y en este equipo hace falta un poco más de cuidado.",
+        "No sé si la IA lo siente, pero las personas que trabajan conmigo sí; y en este equipo hace falta un poco más de cuidado.",
     },
     {
       id: "q3",
