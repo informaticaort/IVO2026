@@ -10,7 +10,7 @@ const HMP_CONFIG: LabConversationConfig = {
   acronym: "HMP",
   speaker: "Valen",
   greeting:
-    "Eh… hola. Soy Valen. Perdón, estoy medio disperso, tengo mil cosas pendientes. Pero dale, preguntá… intento ayudar. Creo.",
+    "Eh… hola. Soy Valen. Perdón, estoy medio disperso, tengo mil cosas pendientes. Pero dale, preguntá… intento ayudar, creo.",
   closingSpeech:
     "Ok, ok… arranquemos con los desafíos de realidad virtual. Conecten bien los cables y sigan las secuencias de símbolos. Sí, eso. Bastante seguro.",
   completedSpeech:
@@ -22,7 +22,7 @@ const HMP_CONFIG: LabConversationConfig = {
       id: "q1",
       question: "Valen, ¿qué hacías a las 03:00 AM?",
       answer:
-        "¿A las 03:00 AM? No sé. Esperen. Sí, sí sé. Creo. " +
+        "¿A las 03:00 AM? No sé... esperen. Sí, sí sé, creo. " +
         "Estaba en mi casa intentando terminar un informe que era para ayer. O para antes de ayer. No, pará… el informe era para hoy, pero también tenía pendiente calibrar los cascos de VR. " +
         "A ver, no estuve acá. Eso seguro. O casi seguro. No, seguro. Tengo mensajes enviados desde mi casa como a las 02:40 que dicen “ya casi termino”, que es mentira porque no terminé nada.",
     },
@@ -49,7 +49,7 @@ const HMP_CONFIG: LabConversationConfig = {
       answer:
         "Sí. O sea, creo que sí. " +
         "Vi a Belen discutiendo con Avril por permisos de acceso. Belen decía que el sistema estaba mal diseñado y que si algo fallaba, iba a ser culpa de Avril. " +
-        "Después vi a Mica intentando calmarlos. Le dijo “por favor” a la IA cuando se trabó la pantalla. No sé si cuenta como raro porque Mica hace eso siempre.",
+        "Después vi a Mica intentando calmarlas. Le dijo “por favor” a la IA cuando se trabó la pantalla. No sé si cuenta como raro porque Mica hace eso siempre.",
     },
     {
       id: "q5",

@@ -68,12 +68,7 @@ const SCRAMBLED_ORDER = ["s4", "s6", "s1", "s5", "s3", "s2"]
 
 const STEPS_BY_ID = Object.fromEntries(CORRECT_ORDER.map((s) => [s.id, s]))
 
-const HISTORY_ENTRIES = [
-  { id: "delete", title: "Cómo eliminar un archivo", time: "Hoy, 02:58", color: "bg-blue-500" },
-  { id: "fix", title: "Cómo solucionar el error de ADDE Labs", time: "Hoy, 03:05", color: "bg-orange-500" },
-] as const
-
-type HistoryId = (typeof HISTORY_ENTRIES)[number]["id"]
+type HistoryId = "delete" | "fix"
 
 // Código de 6 caracteres que se revela al recuperar la IA en VS Code.
 const FRAGMENT_CODE = "H4CK3D"
@@ -331,6 +326,89 @@ function ScreenWindow({
         <div className="min-h-0 flex-1 overflow-y-auto bg-white text-base leading-snug sm:text-lg">
           {children}
         </div>
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Ventana de Google Chrome con el historial: capturas ya dibujadas (traen su
+ * propia barra de título, dirección y flecha "atrás"), así que no se
+ * envuelven en ScreenWindow. Las zonas clickeables (cerrar, cada entrada del
+ * historial, volver) van superpuestas como botones invisibles en las
+ * coordenadas de la captura, igual que en RecycleBinWindow.
+ */
+function ChromeHistoryWindow({
+  view,
+  onSelectHistory,
+  onBack,
+  onClose,
+}: {
+  view: HistoryId | null
+  onSelectHistory: (id: HistoryId) => void
+  onBack: () => void
+  onClose: () => void
+}) {
+  const image =
+    view === "delete"
+      ? "/images/Eliminar_Archivos.png"
+      : view === "fix"
+        ? "/images/Error_ADDE.png"
+        : "/images/Historial.png"
+  const alt =
+    view === "delete"
+      ? "Página: Cómo eliminar un archivo (y cómo recuperarlo)"
+      : view === "fix"
+        ? "Página: Cómo restaurar el error de ADDE Labs"
+        : "Historial de Google Chrome con dos páginas visitadas"
+
+  return (
+    <div className="absolute inset-0 z-10 overflow-hidden rounded-[1rem]">
+      <div className="relative h-full w-full">
+        <Image
+          src={image}
+          alt={alt}
+          width={1672}
+          height={941}
+          className="h-full w-full select-none object-fill"
+        />
+
+        {/* Cerrar: superpuesta sobre la X roja de la captura */}
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Cerrar ventana"
+          className="absolute cursor-pointer rounded-sm outline-none transition-colors hover:bg-white/30 focus-visible:bg-white/30"
+          style={{ left: "95.6%", top: "0.9%", width: "3.6%", height: "5.8%" }}
+        />
+
+        {!view ? (
+          <>
+            <button
+              type="button"
+              onClick={() => onSelectHistory("delete")}
+              aria-label="Ver página: Cómo eliminar un archivo"
+              className="absolute cursor-pointer rounded-md outline-none transition-colors hover:bg-black/5 focus-visible:bg-black/5"
+              style={{ left: "30.7%", top: "54.6%", width: "66.2%", height: "8.9%" }}
+            />
+            <button
+              type="button"
+              onClick={() => onSelectHistory("fix")}
+              aria-label="Ver página: Cómo solucionar el error de ADDE Labs"
+              className="absolute cursor-pointer rounded-md outline-none transition-colors hover:bg-black/5 focus-visible:bg-black/5"
+              style={{ left: "30.7%", top: "63.4%", width: "66.2%", height: "8.9%" }}
+            />
+          </>
+        ) : (
+          /* Volver: superpuesta sobre la flecha "atrás" de la captura */
+          <button
+            type="button"
+            onClick={onBack}
+            aria-label="Volver al historial"
+            className="absolute cursor-pointer rounded-sm outline-none transition-colors hover:bg-black/5 focus-visible:bg-black/5"
+            style={{ left: "0.8%", top: "9.3%", width: "5%", height: "8.2%" }}
+          />
+        )}
       </div>
     </div>
   )
@@ -728,102 +806,12 @@ export function CeoDesktopGame({
 
             {/* Ventana: Google Chrome → historial con 2 páginas visitadas */}
             {openWindow === "chrome" ? (
-              <ScreenWindow
-                title={
-                  historyView
-                    ? `${HISTORY_ENTRIES.find((h) => h.id === historyView)?.title} — Google Chrome`
-                    : "Historial — Google Chrome"
-                }
+              <ChromeHistoryWindow
+                view={historyView}
+                onSelectHistory={(id) => setHistoryView(id)}
+                onBack={() => setHistoryView(null)}
                 onClose={closeWindow}
-              >
-                {!historyView ? (
-                  <div className="flex flex-col">
-                    <div className="border-b border-gray-200 bg-gray-50 px-2 py-2 text-gray-500">
-                      🔍 Buscar en el historial
-                    </div>
-                    <ul className="divide-y divide-gray-100">
-                      {HISTORY_ENTRIES.map((h) => (
-                        <li key={h.id}>
-                          <button
-                            type="button"
-                            onClick={() => setHistoryView(h.id)}
-                            className="flex w-full items-center gap-2.5 px-2.5 py-2.5 text-left transition-colors hover:bg-gray-50"
-                          >
-                            <span
-                              className={`flex size-6 shrink-0 items-center justify-center rounded-full text-xs ${h.color}`}
-                              aria-hidden="true"
-                            >
-                              🌐
-                            </span>
-                            <span className="flex-1 text-blue-700 underline">
-                              {h.title}
-                            </span>
-                            <span className="shrink-0 text-gray-400">{h.time}</span>
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ) : (
-                  <div className="flex flex-col gap-2 px-3 py-3">
-                    <button
-                      type="button"
-                      onClick={() => setHistoryView(null)}
-                      className="mb-0.5 self-start font-semibold text-blue-700 underline"
-                    >
-                      ← Volver al historial
-                    </button>
-                    {historyView === "delete" ? (
-                      <>
-                        <p className="font-bold text-gray-800">
-                          Cómo eliminar un archivo (y cómo recuperarlo)
-                        </p>
-                        <p className="leading-relaxed text-gray-700">
-                          Cuando borrás un archivo, en realidad no desaparece:
-                          se manda a la Papelera de reciclaje. Ahí se queda
-                          guardado hasta que alguien lo restaura o vacía la
-                          papelera.
-                        </p>
-                        <p className="leading-relaxed text-gray-700">
-                          Si necesitás recuperar algo que se borró por error,
-                          lo único que hay que hacer es abrir la Papelera,
-                          buscar el archivo en la lista, seleccionarlo y elegir
-                          la opción Restaurar.
-                        </p>
-                      </>
-                    ) : (
-                      <>
-                        <p className="font-bold text-gray-800">
-                          Cómo solucionar el error de ADDE Labs
-                        </p>
-                        <p className="leading-relaxed text-gray-700">
-                          La página de ADDE Labs se cayó porque le faltan las
-                          instrucciones para ordenar una lista de números.
-                          Esas instrucciones están en un archivo que se borró
-                          sin querer.
-                        </p>
-                        <p className="leading-relaxed text-gray-700">
-                          Para ordenar cualquier lista alcanza con comparar
-                          los números de a pares, uno al lado del otro, y
-                          cambiarlos de lugar si están al revés. Después se
-                          sigue con el próximo par, y así hasta el final.
-                        </p>
-                        <p className="leading-relaxed text-gray-700">
-                          Como algunos números quedan mal ubicados la primera
-                          vez, hay que repetir todo el proceso varias veces.
-                        </p>
-                        <p className="leading-relaxed text-gray-700">
-                          Lo único que nunca cambia es el principio: siempre
-                          se arranca con la lista tal como llegó, sin tocar
-                          nada todavía. Y se termina recién cuando, después de
-                          revisar todo, ya no hace falta cambiar nada más: ahí
-                          se guarda el resultado.
-                        </p>
-                      </>
-                    )}
-                  </div>
-                )}
-              </ScreenWindow>
+              />
             ) : null}
 
             {/* Ventana: VS Code → el código real que hay que "activar" */}
