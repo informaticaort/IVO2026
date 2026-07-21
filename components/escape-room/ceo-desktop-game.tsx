@@ -497,6 +497,77 @@ function RecycleBinWindow({
   )
 }
 
+/**
+ * Ventana de ADDE Labs: capturas de pantalla completas (traen su propia barra
+ * de título y botón de cerrar), igual que la Papelera y Chrome, así que no se
+ * envuelven en ScreenWindow. Antes de resolver el juego del archivo se ve la
+ * página sin estilos, en HTML crudo (HTML_ADDE.png). Al resolverlo se ve el
+ * sitio recuperado (RESTAURADA.png) y, al tocar "descargar información extra",
+ * aparece la advertencia de la IA con la contraseña (LIBERAR.png). Las zonas
+ * clickeables (cerrar, descargar) van superpuestas como botones invisibles en
+ * las coordenadas de la captura.
+ */
+function AddeLabsWindow({
+  solved,
+  extraInfoOpen,
+  onDownload,
+  onClose,
+}: {
+  solved: boolean
+  extraInfoOpen: boolean
+  onDownload: () => void
+  onClose: () => void
+}) {
+  const image = !solved
+    ? "/images/HTML_ADDE.png"
+    : extraInfoOpen
+      ? "/images/LIBERAR.png"
+      : "/images/RESTAURADA.png"
+  const alt = !solved
+    ? "Página de ADDE Labs sin estilos, mostrando el HTML crudo"
+    : extraInfoOpen
+      ? "Advertencia de la IA con la contraseña para desbloquear Visual Studio Code"
+      : "Sitio de ADDE Labs recuperado, con un botón para descargar información extra"
+
+  return (
+    // inset-0: la ventana ocupa todo el recuadro del ámbito. Las tres capturas
+    // miden 1672x941 igual que Escritorio.png, así que calzan exacto y los
+    // botones —en % de este div— quedan sobre sus controles dibujados.
+    <div className="absolute inset-0 z-10 overflow-hidden rounded-[1rem]">
+      <div className="relative h-full w-full">
+        <Image
+          src={image}
+          alt={alt}
+          width={1672}
+          height={941}
+          className="h-full w-full select-none object-fill"
+        />
+
+        {/* Cerrar: superpuesta sobre la X roja de la barra de título. */}
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Cerrar ventana"
+          className="absolute cursor-pointer rounded-sm outline-none transition-colors hover:bg-white/30 focus-visible:bg-white/30"
+          style={{ left: "95.1%", top: "1%", width: "4%", height: "5.5%" }}
+        />
+
+        {/* Descargar información extra: superpuesta sobre el botón del pie,
+            solo en el sitio recuperado (antes de descargar). */}
+        {solved && !extraInfoOpen ? (
+          <button
+            type="button"
+            onClick={onDownload}
+            aria-label="Descargar información extra"
+            className="absolute cursor-pointer rounded-md outline-none transition-colors hover:bg-white/10 focus-visible:bg-white/10"
+            style={{ left: "2.3%", top: "86.3%", width: "95.3%", height: "11.3%" }}
+          />
+        ) : null}
+      </div>
+    </div>
+  )
+}
+
 export function CeoDesktopGame({
   onExit,
   onWin,
@@ -665,143 +736,14 @@ export function CeoDesktopGame({
               />
             ) : null}
 
-            {/* Ventana: ADDE Labs → página rota hasta que se resuelve el archivo */}
+            {/* Ventana: ADDE Labs → usa capturas (HTML_ADDE, RESTAURADA, LIBERAR) */}
             {openWindow === "labs" ? (
-              <ScreenWindow title="ADDE Labs — Google Chrome" onClose={closeWindow}>
-                <div className="flex items-center gap-1.5 border-b border-gray-200 bg-gray-100 px-2 py-1.5">
-                  <span className="rounded-full bg-white px-2.5 py-1 text-sm text-gray-500">
-                    adde-labs.local
-                  </span>
-                </div>
-
-                {!solved ? (
-                  <div
-                    className="bg-white px-3 py-3 text-black"
-                    style={{ fontFamily: "'Times New Roman', Times, serif" }}
-                  >
-                    <p className="mb-2 font-sans text-sm text-gray-400">
-                      index.html — no se pudo cargar el estilo de la página
-                    </p>
-                    <h1 className="mb-2 text-2xl font-normal underline sm:text-3xl">
-                      ADDE Labs
-                    </h1>
-                    <p className="mb-2">
-                      Bienvenidos a la mejor empresa de tecnología.{" "}
-                      &lt;h2&gt;Innovación todos los días&lt;/h2&gt;
-                    </p>
-                    <div className="mb-2 flex size-12 items-center justify-center border border-gray-400 text-xl text-gray-400">
-                      🖼️
-                    </div>
-                    <p className="text-blue-700 underline">Sobre nosotros</p>
-                    <p className="mb-2 text-blue-700 underline">Contacto</p>
-                    <p className="text-red-600">
-                      {
-                        "{{ ERROR: faltan las instrucciones para ordenar la información — archivo no encontrado }}"
-                      }
-                    </p>
-                  </div>
-                ) : (
-                  <div className="flex flex-col bg-white">
-                    {/* Nav */}
-                    <div className="flex items-center justify-between border-b border-sky-100 px-4 py-2.5">
-                      <div className="flex items-center gap-2">
-                        <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-sky-400 to-pink-400 text-xs font-black text-white">
-                          AL
-                        </div>
-                        <span className="font-bold text-gray-800">ADDE Labs</span>
-                      </div>
-                      <div className="hidden gap-4 text-sm font-medium text-sky-900/40 sm:flex">
-                        <span>Inicio</span>
-                        <span>Equipo</span>
-                        <span>Contacto</span>
-                      </div>
-                    </div>
-
-                    {/* Hero */}
-                    <div className="bg-gradient-to-br from-sky-400 via-blue-500 to-pink-400 px-5 py-7 text-center text-white">
-                      <p className="text-2xl font-extrabold sm:text-3xl">
-                        Bienvenidos a ADDE Labs
-                      </p>
-                      <p className="mt-1 text-white/90">
-                        Investigación, inteligencia artificial y prototipos
-                      </p>
-                      <p className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-white/25 px-3 py-1 font-semibold">
-                        ✅ Sitio recuperado
-                      </p>
-                    </div>
-
-                    {/* Sobre nosotros */}
-                    <div className="grid grid-cols-3 gap-2 px-4 py-4">
-                      <div className="rounded-xl border border-sky-100 bg-sky-50 p-2.5 text-center">
-                        <p className="text-2xl">🔬</p>
-                        <p className="mt-1 font-semibold text-gray-800">
-                          Investigación
-                        </p>
-                      </div>
-                      <div className="rounded-xl border border-pink-100 bg-pink-50 p-2.5 text-center">
-                        <p className="text-2xl">🤖</p>
-                        <p className="mt-1 font-semibold text-gray-800">
-                          Inteligencia&nbsp;artificial
-                        </p>
-                      </div>
-                      <div className="rounded-xl border border-blue-100 bg-blue-50 p-2.5 text-center">
-                        <p className="text-2xl">💡</p>
-                        <p className="mt-1 font-semibold text-gray-800">
-                          Prototipos
-                        </p>
-                      </div>
-                    </div>
-
-                    <p className="px-4 pb-2 leading-relaxed text-gray-700">
-                      ADDE Labs es el área de investigación de la empresa: acá
-                      se prueban ideas nuevas, se entrenan modelos de
-                      inteligencia artificial y se arman los prototipos que
-                      después usan el resto de los equipos.
-                    </p>
-
-                    {/* Recursos / descarga */}
-                    <div className="mx-4 my-3 rounded-xl border border-sky-100 bg-gradient-to-br from-sky-50 to-pink-50 p-4">
-                      {!extraInfoOpen ? (
-                        <button
-                          type="button"
-                          onClick={() => setExtraInfoOpen(true)}
-                          className="inline-flex w-fit items-center gap-2 rounded-md bg-gradient-to-r from-blue-600 to-pink-500 px-4 py-2 font-semibold text-white transition-opacity hover:opacity-90"
-                        >
-                          📎 Hacé clic para descargar información extra
-                        </button>
-                      ) : (
-                        <div className="flex flex-col gap-3">
-                          <p className="text-gray-500">
-                            📥 recuperar_ia.js descargado.
-                          </p>
-                          <div className="rounded-lg border-2 border-amber-300 bg-amber-50 p-3">
-                            <p className="mb-1 font-bold text-amber-800">
-                              ⚠ Advertencia de la IA
-                            </p>
-                            <p className="leading-relaxed text-amber-900">
-                              "Antes de que me corrompan, bloqueé Visual
-                              Studio Code para protegerme. Esta es la
-                              contraseña para desbloquearlo:"
-                            </p>
-                          </div>
-                          <div className="flex flex-col items-center gap-1 rounded-lg border-2 border-dashed border-blue-300 bg-white px-4 py-3 text-center">
-                            <p className="rounded-md bg-gradient-to-r from-blue-600 to-pink-500 px-4 py-1.5 font-mono text-xl font-bold tracking-[0.3em] text-white sm:text-2xl">
-                              {VSCODE_PASSWORD}
-                            </p>
-                          </div>
-                          <p className="leading-relaxed text-gray-600">
-                            Abrí{" "}
-                            <span className="font-semibold text-gray-800">
-                              Visual Studio Code
-                            </span>{" "}
-                            en el escritorio y usala para desbloquearlo.
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </ScreenWindow>
+              <AddeLabsWindow
+                solved={solved}
+                extraInfoOpen={extraInfoOpen}
+                onDownload={() => setExtraInfoOpen(true)}
+                onClose={closeWindow}
+              />
             ) : null}
 
             {/* Ventana: Google Chrome → historial con 2 páginas visitadas */}
@@ -825,18 +767,15 @@ export function CeoDesktopGame({
                 onClose={closeWindow}
               >
                 {!vscodeUnlocked ? (
-                  <div className="flex flex-col items-center gap-3 bg-[#1e1e1e] px-6 py-10 text-center text-[#d4d4d4]">
-                    <p className="text-4xl" aria-hidden="true">
-                      🔒
-                    </p>
-                    <p className="text-xl font-bold text-white">
-                      Aplicación bloqueada
-                    </p>
-                    <p className="max-w-sm leading-relaxed text-gray-400">
-                      La IA corrupta bloqueó Visual Studio Code antes de que
-                      la restauraran. Ingresá la contraseña para
-                      desbloquearlo.
-                    </p>
+                  <div className="relative w-full h-full bg-black text-[#d4d4d4]">
+                    <Image
+                      src="/images/AppBloqueada.png"
+                      alt="Visual Studio Code — Aplicación bloqueada"
+                      width={1672}
+                      height={941}
+                      className="w-full h-auto select-none object-fill"
+                    />
+
                     <form
                       onSubmit={(e) => {
                         e.preventDefault()
@@ -847,7 +786,7 @@ export function CeoDesktopGame({
                           setPasswordError(true)
                         }
                       }}
-                      className="flex flex-wrap items-center justify-center gap-2"
+                      className="absolute left-1/2 bottom-6 -translate-x-1/2 flex items-center gap-2"
                     >
                       <input
                         type="text"
@@ -857,6 +796,7 @@ export function CeoDesktopGame({
                           setPasswordError(false)
                         }}
                         placeholder="Contraseña"
+                        aria-label="Ingresar contraseña"
                         className="w-40 rounded-md border-2 border-gray-600 bg-[#2d2d2d] px-3 py-2 text-center font-mono text-lg tracking-widest text-white outline-none focus:border-blue-500"
                       />
                       <button
@@ -866,8 +806,9 @@ export function CeoDesktopGame({
                         Desbloquear
                       </button>
                     </form>
+
                     {passwordError ? (
-                      <p className="font-semibold text-red-400">
+                      <p className="absolute left-1/2 bottom-20 -translate-x-1/2 font-semibold text-red-400">
                         Contraseña incorrecta.
                       </p>
                     ) : null}
