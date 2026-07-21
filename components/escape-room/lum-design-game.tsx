@@ -101,16 +101,6 @@ const TITLE_SIZE_LABELS: Record<TitleSize, { label: string; textClass: string }>
   large: { label: "L", textClass: "text-base" },
 }
 
-const COMPLETION_LINES = [
-  { text: "Restaurando sistema...", bar: 6 },
-  { text: "Recuperando archivos encriptados...", bar: 14 },
-  { text: "Acceso concedido...", bar: 15 },
-]
-
-function bar(n: number, total = 15) {
-  return "█".repeat(n) + "░".repeat(Math.max(0, total - n))
-}
-
 /* --------------------------- Recuadro estilo LUM (borde rojo) --------------------------- */
 
 /** Mismo borde rojo que el retrato de LUM en la conversación, capado a la
@@ -418,10 +408,9 @@ export function LumDesignGame({
   /** Se llama al restaurar el sistema al 100%, para marcar el ámbito como resuelto. */
   onWin?: () => void
 }) {
-  const [phase, setPhase] = useState<"playing" | "completing" | "won">("playing")
+  const [phase, setPhase] = useState<"playing" | "won">("playing")
   const [designState, setDesignState] = useState<DesignState>(INITIAL_STATE)
   const [pulse, setPulse] = useState<{ key: PropertyKey; ok: boolean } | null>(null)
-  const [completionLine, setCompletionLine] = useState(0)
   const [showReference, setShowReference] = useState(true)
   const [hasStarted, setHasStarted] = useState(false)
 
@@ -435,7 +424,7 @@ export function LumDesignGame({
 
   // Al alcanzar el 100% el ámbito queda resuelto (una sola vez). Se marca acá,
   // apenas coincide el diseño, para que el monitoreo registre la completitud
-  // aunque el equipo salga durante la animación de restauración.
+  // aunque el equipo salga de la pantalla de victoria.
   const wonNotified = useRef(false)
   useEffect(() => {
     if (progress === 100 && !wonNotified.current) {
@@ -450,21 +439,10 @@ export function LumDesignGame({
     return () => clearTimeout(t)
   }, [pulse])
 
-  // Al llegar al 100% se dispara la secuencia de restauración y luego la victoria.
+  // Al llegar al 100% se gana directamente, sin animación de carga.
   useEffect(() => {
-    if (progress === 100 && phase === "playing") setPhase("completing")
+    if (progress === 100 && phase === "playing") setPhase("won")
   }, [progress, phase])
-
-  useEffect(() => {
-    if (phase !== "completing") return
-    setCompletionLine(0)
-    const timers = [
-      setTimeout(() => setCompletionLine(1), 900),
-      setTimeout(() => setCompletionLine(2), 1800),
-      setTimeout(() => setPhase("won"), 2700),
-    ]
-    return () => timers.forEach(clearTimeout)
-  }, [phase])
 
   function handleChange(patch: Partial<DesignState>) {
     setDesignState((prev) => ({ ...prev, ...patch }))
@@ -614,21 +592,6 @@ export function LumDesignGame({
                   {hasStarted ? "VOLVER A LA REPARACIÓN" : "COMENZAR REPARACIÓN"}
                 </button>
               </FramedPanel>
-            </div>
-          ) : null}
-
-          {/* --------------------------- SECUENCIA DE RESTAURACIÓN --------------------------- */}
-          {phase === "completing" ? (
-            <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/90 p-4">
-              <div className="w-full max-w-md rounded-lg border border-[var(--neon-green)]/50 bg-black/70 p-5 font-mono text-sm text-[var(--neon-green)]">
-                {COMPLETION_LINES.slice(0, completionLine + 1).map((line, i) => (
-                  <p key={i} className="mb-2 whitespace-pre-line">
-                    {line.text}
-                    {"\n"}
-                    {bar(line.bar)}
-                  </p>
-                ))}
-              </div>
             </div>
           ) : null}
         </div>
