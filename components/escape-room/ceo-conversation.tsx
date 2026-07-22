@@ -24,13 +24,13 @@ const CEO_CONFIG: LabConversationConfig = {
     top: "57.5%",
     width: "8.4%",
     height: "9.7%",
-    // Recorte de la pantalla del escritorio real (CeoDesktopPixelArt.png,
-    // 1672x941) para que la "pantalla prendida" muestre el mismo fondo que van
-    // a ver al entrar, en vez de la pantalla azul genérica ":(".
+    // La "pantalla prendida" muestra el mismo escritorio que van a ver al
+    // entrar, en vez de la pantalla azul genérica ":(". Escritorio.png ya es
+    // la pantalla completa, así que entra entera y no hace falta recortarla.
     preview: {
-      image: "/images/CeoDesktopPixelArt.png",
-      backgroundSize: "189.35% 200.21%",
-      backgroundPosition: "22.05% 18.47%",
+      image: "/images/Escritorio.png",
+      backgroundSize: "100% 100%",
+      backgroundPosition: "center",
     },
   },
   questions: [
