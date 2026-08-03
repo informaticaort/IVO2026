@@ -26,11 +26,10 @@ export function WelcomeScreen({ onStart }: { onStart: () => void }) {
           </h1>
 
           <p className="mx-auto max-w-2xl font-mono text-sm leading-relaxed text-muted-foreground sm:text-base md:text-lg">
-            En el Centro de Investigación y Desarrollo en Informática se intentó
+            En ADDE Labs se intentó
             implementar una inteligencia artificial general para automatizar los
-            controles de laboratorio. El sistema evolucionó demasiado rápido y
-            ahora bloquea el acceso, altera los protocolos y mantiene el
-            complejo en cuarentena.
+            controles de laboratorio. Uno de los integrantes del equipo se revelo contra la empresa e infecto la IA.
+
           </p>
         </div>
 
@@ -40,7 +39,7 @@ export function WelcomeScreen({ onStart }: { onStart: () => void }) {
               misión
             </p>
             <p className="mt-2 text-sm text-foreground">
-              Recuperar el control de los laboratorios.
+              Recuperar el control de los laboratorios y encotrar al culpable.
             </p>
           </div>
           <div className="rounded-2xl border border-[var(--neon-green)]/25 bg-[oklch(0.18_0.04_264/0.78)] p-4 shadow-[0_0_0_1px_color-mix(in_oklch,var(--neon-green)_10%,transparent)] backdrop-blur-sm">
@@ -48,7 +47,7 @@ export function WelcomeScreen({ onStart }: { onStart: () => void }) {
               amenaza
             </p>
             <p className="mt-2 text-sm text-foreground">
-              La IA manipula los accesos.
+              La IA bloqueo los accesos a los laboratorios.
             </p>
           </div>
           <div className="rounded-2xl border border-[var(--neon-pink)]/25 bg-[oklch(0.18_0.04_264/0.78)] p-4 shadow-[0_0_0_1px_color-mix(in_oklch,var(--neon-pink)_10%,transparent)] backdrop-blur-sm">
@@ -56,7 +55,7 @@ export function WelcomeScreen({ onStart }: { onStart: () => void }) {
               objetivo
             </p>
             <p className="mt-2 text-sm text-foreground">
-              Resolver pistas y reactivar los protocolos.
+              Localizar al culpable y restaurar el control.
             </p>
           </div>
         </div>

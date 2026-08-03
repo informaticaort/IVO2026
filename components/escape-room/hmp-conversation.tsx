@@ -13,6 +13,7 @@ const HMP_CONFIG: LabConversationConfig = {
     "Eh… hola. Soy Valen. Perdón, estoy medio disperso, tengo mil cosas pendientes. Pero dale, preguntá… intento ayudar, creo.",
   closingSpeech:
     "Ok, ok… arranquemos con los desafíos de realidad virtual. Conecten bien los cables y sigan las secuencias de símbolos. Sí, eso. Bastante seguro.",
+  password: "SINCRO",
   completedSpeech:
     "Uf, la secuencia quedó sincronizada y el pendrive recuperó el fragmento de HMP. Ya está, bastante seguro. Podés revisar el registro de la entrevista si querés.",
   // El juego se muestra dentro del recuadro (como las entrevistas), no fullscreen.
@@ -50,6 +51,10 @@ const HMP_CONFIG: LabConversationConfig = {
         "Sí. O sea, creo que sí. " +
         "Vi a Belen discutiendo con Avril por permisos de acceso. Belen decía que el sistema estaba mal diseñado y que si algo fallaba, iba a ser culpa de Avril. " +
         "Después vi a Mica intentando calmarlas. Le dijo “por favor” a la IA cuando se trabó la pantalla. No sé si cuenta como raro porque Mica hace eso siempre.",
+      highlights: [
+        "Belen discutiendo con Avril por permisos de acceso",
+        "si algo fallaba, iba a ser culpa de Avril",
+      ],
     },
     {
       id: "q5",
@@ -58,6 +63,7 @@ const HMP_CONFIG: LabConversationConfig = {
         "No sé. Avril llega tarde, se olvida reuniones, pierde cosas… pero sabotear su propio proyecto me parece mucho. " +
         "Además, si Avril quisiera romper algo, probablemente llegaría tarde también al sabotaje. " +
         "Perdón, no debería bromear. Estoy nervioso.",
+      highlights: ["sabotear su propio proyecto me parece mucho"],
     },
     {
       id: "q6",
@@ -67,6 +73,11 @@ const HMP_CONFIG: LabConversationConfig = {
         "La IA alteró primero los sistemas que podían registrar actividad: accesos, logs, sensores. Eso parece planeado. " +
         "Y el desafío de HMP quedó intervenido de una manera muy específica, como si alguien conociera cómo usamos la realidad virtual para entrenar al equipo. " +
         "No fue un ataque cualquiera. Fue alguien de adentro. Casi seguro. Bueno, bastante seguro. No sé. Anoten “bastante seguro”.",
+      highlights: [
+        "Eso parece planeado",
+        "como si alguien conociera cómo usamos la realidad virtual",
+        "Fue alguien de adentro",
+      ],
     },
   ],
 }

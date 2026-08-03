@@ -13,6 +13,7 @@ const AMI_CONFIG: LabConversationConfig = {
     "Hola, ¿cómo estás? Soy Mica. Preguntame lo que necesites, con tranquilidad… quiero que esto se resuelva bien.",
   closingSpeech:
     "Bien. Esa computadora quedó bloqueada por la IA… resuelvan las ecuaciones con calma y conviertan cada número en su letra.",
+  password: "DECRYPT",
   completedSpeech:
     "Gracias por la ayuda. Esta parte del sistema ya quedó desencriptada y el pendrive tiene su fragmento. Si querés, podés revisar el registro de lo que hablamos, pero por acá ya no queda nada más para preguntar.",
   // El juego se muestra dentro del recuadro (como las entrevistas), no fullscreen.
@@ -59,6 +60,7 @@ const AMI_CONFIG: LabConversationConfig = {
         "Sí. Intenté mediar varias veces. " +
         "Avril estaba muy presionada porque la presentación se acercaba. Santi se frustraba cuando nadie revisaba los detalles. Valen estaba completamente sobrepasado. Y Belen… Belen se enojaba cuando alguien cuestionaba su código. " +
         "No creo que nadie sea malo. Pero cuando las personas están cansadas y se sienten atacadas, pueden tomar decisiones horribles.",
+      highlights: ["Belen se enojaba cuando alguien cuestionaba su código"],
     },
     {
       id: "q5",
@@ -67,6 +69,11 @@ const AMI_CONFIG: LabConversationConfig = {
         "Vi a Belen muy alterada después de una reunión con Avril. Decía que si el sistema fallaba, ella no iba a cargar con la culpa de errores ajenos. " +
         "También escuché que Avril no encontraba su credencial. Pensé que la había perdido como otras veces, porque siempre llega tarde, se apura y deja cosas por cualquier lado. " +
         "Ahora me preocupa que alguien se haya aprovechado de eso.",
+      highlights: [
+        "Belen muy alterada después de una reunión con Avril",
+        "no iba a cargar con la culpa de errores ajenos",
+        "Avril no encontraba su credencial",
+      ],
     },
     {
       id: "q6",
@@ -75,7 +82,8 @@ const AMI_CONFIG: LabConversationConfig = {
         "No del todo. " +
         "Creo que la IA está reaccionando a una instrucción corrupta. Como si alguien le hubiera dado una orden maliciosa y ella estuviera intentando cumplirla sin entender el daño. " +
         "Por eso tenemos que desinfectarla, no destruirla. " +
-        "Y también tenemos que descubrir quién le dio esa orden."
+        "Y también tenemos que descubrir quién le dio esa orden.",
+      highlights: ["alguien le hubiera dado una orden maliciosa"],
     },
   ],
 }

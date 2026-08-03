@@ -1,5 +1,9 @@
 "use client"
 
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
+
+import { cidiUnlocked } from "@/lib/presence/types"
 import { LabConversation, type LabConversationConfig } from "./lab-conversation"
 import { CidiFinalGame } from "./cidi-final-game"
 
@@ -27,6 +31,10 @@ const CIDI_CONFIG: LabConversationConfig = {
         "Ya revisamos los accesos y el sabotaje se ejecutó con tu credencial. ¿Qué hiciste con ella?",
       answer:
         "¡La perdí! Ayer con el caos de las entregas estuve súper desordenada. La debo haber dejado olvidada en la mesa de reuniones o en mi escritorio. Alguien aprovechó mi descuido, me la robó y me usó de chivo expiatorio.",
+      highlights: [
+        "dejado olvidada en la mesa de reuniones",
+        "me la robó y me usó de chivo expiatorio",
+      ],
     },
     {
       id: "q3",
@@ -41,6 +49,11 @@ const CIDI_CONFIG: LabConversationConfig = {
         "Belén nos contó que tuvieron una discusión durísima antes del colapso. ¿Por qué nos lo ocultaste?",
       answer:
         "No se los oculté, ¡recién llego! Estaba insoportable criticando la seguridad y me dijo que si algo fallaba sería mi culpa. Me dio tanto dolor de cabeza que dejé mis cosas en la mesa y me fui a tomar un café. Ahí fue cuando me sacaron la credencial.",
+      highlights: [
+        "si algo fallaba sería mi culpa",
+        "dejé mis cosas en la mesa y me fui a tomar un café",
+        "Ahí fue cuando me sacaron la credencial",
+      ],
     },
     {
       id: "q5",
@@ -48,6 +61,11 @@ const CIDI_CONFIG: LabConversationConfig = {
         "Ya hablamos con Santi, Valen, Mica y Belén. Con todo lo que sabés de ellos, ¿quién creés que es el responsable?",
       answer:
         "Escondió el código en las cuatro áreas, así que conoce las debilidades del sistema desde adentro y planeó esto con mucha frialdad. Cualquiera que tuviera acceso a la arquitectura y una razón para sabotearnos pudo ser. No descarten a nadie por su personalidad.",
+      highlights: [
+        "conoce las debilidades del sistema desde adentro",
+        "planeó esto con mucha frialdad",
+        "Cualquiera que tuviera acceso a la arquitectura",
+      ],
     },
     {
       id: "q6",
@@ -55,11 +73,27 @@ const CIDI_CONFIG: LabConversationConfig = {
         "Ya recuperamos los fragmentos de AMI, LUM, CEO y HMP en el pendrive. Estamos frente al CIDI, ¿cómo entramos?",
       answer:
         "¡Excelente, es el último paso! Como ya tienen todo listo, la terminal les va a habilitar el acceso al CIDI. Para desinfectar la IA, piensen en la lógica del saboteador: el código va a estar muy ordenado pero con soberbia. Tienen que ingresar los 4 fragmentos en el orden correcto de la estructura. ¡Háganlo ya o perdemos todo!",
+      highlights: ["el código va a estar muy ordenado pero con soberbia"],
     },
   ],
 }
 
 export function CidiConversation() {
+  const router = useRouter()
+  // Guard de ruta: no se entra al CIDI hasta completar AMI, HMP, CEO y LUM.
+  // Si se llega por URL directa sin cumplirlo, se vuelve al plano.
+  const [allowed, setAllowed] = useState(false)
+
+  useEffect(() => {
+    if (cidiUnlocked()) {
+      setAllowed(true)
+    } else {
+      router.replace("/plano")
+    }
+  }, [router])
+
+  if (!allowed) return null
+
   return (
     <LabConversation
       config={CIDI_CONFIG}

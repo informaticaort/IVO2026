@@ -35,6 +35,23 @@ export function doneStorageKey(gameId: GameId): string {
   return `${DONE_KEY_PREFIX}${gameId.toUpperCase()}`
 }
 
+/**
+ * Ámbitos que deben estar resueltos antes de habilitar el CIDI (juego final).
+ * Se usa tanto para bloquear la sala en el plano como para el guard de la ruta.
+ */
+export const CIDI_REQUIRED_LABS = ["AMI", "HMP", "CEO", "LUM"] as const
+
+/** ¿Están los 4 ámbitos previos al CIDI marcados como resueltos en localStorage? */
+export function cidiUnlocked(): boolean {
+  try {
+    return CIDI_REQUIRED_LABS.every((a) =>
+      Boolean(localStorage.getItem(`${DONE_KEY_PREFIX}${a}`)),
+    )
+  } catch {
+    return false
+  }
+}
+
 /** Estado de un grupo en un instante dado. */
 export type GroupPresence = {
   /** Id único y estable del grupo (persistido en sessionStorage del cliente). */

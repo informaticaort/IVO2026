@@ -13,6 +13,7 @@ const LUM_CONFIG: LabConversationConfig = {
     "Soy Santi. De hecho, prefiero los datos a las opiniones. Preguntá lo que quieras… voy a ser preciso.",
   closingSpeech:
     "Bien. El desafío visual empieza ahora. Observen diferencias, detecten patrones y reconstruyan la interfaz. De hecho, los detalles son todo.",
+  password: "UX",
   completedSpeech:
     "La interfaz volvió a coincidir con el sistema original y el pendrive recuperó el fragmento de LUM. De hecho, quedó impecable. Podés revisar el registro de la entrevista si querés.",
   questions: [
@@ -45,6 +46,10 @@ const LUM_CONFIG: LabConversationConfig = {
       answer:
         "Cualquiera con acceso físico a su escritorio. Avril siempre llega tarde, siempre deja cosas tiradas y siempre dice “después lo ordeno”. " +
         "De hecho, su credencial estuvo varias veces arriba de la mesa de reuniones. Lo vi. No porque estuviera espiando, sino porque observo detalles. Hay una diferencia.",
+      highlights: [
+        "Cualquiera con acceso físico a su escritorio",
+        "su credencial estuvo varias veces arriba de la mesa de reuniones",
+      ],
     },
     {
       id: "q5",
@@ -53,6 +58,11 @@ const LUM_CONFIG: LabConversationConfig = {
         "Sí. Belen estaba insoportable. Más de lo normal. " +
         "Cada vez que alguien corregía algo de su código, reaccionaba como si le hubieran insultado a un familiar. Decía que nadie entendía su lógica, que él ya lo había previsto, que si algo fallaba era porque los demás no sabían usarlo. " +
         "De hecho, cuando una persona cree que nunca se equivoca, es muy difícil que admita que rompió algo.",
+      highlights: [
+        "Belen estaba insoportable",
+        "nadie entendía su lógica",
+        "cuando una persona cree que nunca se equivoca",
+      ],
     },
     {
       id: "q6",
@@ -61,6 +71,12 @@ const LUM_CONFIG: LabConversationConfig = {
         "El código corrupto no parece hecho por alguien desordenado. Tiene una lógica bastante estructurada. " +
         "Pero también tiene algo raro: está lleno de decisiones innecesariamente arrogantes. Nombres de funciones como si el autor quisiera dejar claro que era más inteligente que todos. " +
         "Eso no prueba nada, de hecho. Pero apunta a alguien con bastante ego.",
+      highlights: [
+        "una lógica bastante estructurada",
+        "decisiones innecesariamente arrogantes",
+        "más inteligente que todos",
+        "alguien con bastante ego",
+      ],
     },
   ],
 }

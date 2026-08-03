@@ -13,6 +13,7 @@ const CEO_CONFIG: LabConversationConfig = {
     "Soy Belen. Programación. Dale, preguntá lo que quieras… total ya decidieron que soy sospechosa antes de escucharme.",
   closingSpeech:
     "Bien. Suficiente charla. Fíjense en esa computadora del fondo: se encendió sola con el desafío de programación cargado… a ver si son tan rápidos como dicen.",
+  password: "HACK3D",
   completedSpeech:
     "Ya está, el desafío de programación quedó resuelto y el pendrive tiene su fragmento. No hace falta que sigan preguntando; si quieren, revisen el registro de la entrevista. Yo ya dije todo lo que tenía para decir.",
   // Monitor de la izquierda (el que está a la izquierda del más cercano, sobre
@@ -41,6 +42,10 @@ const CEO_CONFIG: LabConversationConfig = {
         "En mi casa. Durmiendo, claramente. " +
         "Aunque si me preguntan, el verdadero problema no es dónde estaba yo, sino por qué el sistema permitió que una credencial como la de Avril pudiera ejecutar algo tan crítico sin una segunda validación. " +
         "Pero bueno, eso ya lo había dicho yo antes. Nadie me escuchó.",
+      highlights: [
+        "una credencial como la de Avril",
+        "sin una segunda validación",
+      ],
     },
     {
       id: "q2",
@@ -50,6 +55,10 @@ const CEO_CONFIG: LabConversationConfig = {
         "No. Me compromete saber programar, no sabotear. " +
         "Que alguien haya escrito código corrupto no significa que lo haya hecho yo. En esta empresa todos tocan algo del sistema, aunque algunos lo hagan bastante mal. " +
         "Además, si yo hubiera escrito ese código, no habría fallado de esta manera. Habría sido más limpio, más preciso y, sinceramente, más difícil de detectar.",
+      highlights: [
+        "si yo hubiera escrito ese código",
+        "Habría sido más limpio, más preciso y, sinceramente, más difícil de detectar",
+      ],
     },
     {
       id: "q3",
@@ -59,6 +68,7 @@ const CEO_CONFIG: LabConversationConfig = {
         "Siempre apurada, siempre improvisando, siempre diciendo “después lo vemos”. Y después, claro, pasan estas cosas. " +
         "Yo le advertí que había que reforzar permisos, revisar accesos y separar responsabilidades. No me hizo caso. " +
         "Ahora todos miran sorprendidos el incendio que yo ya había señalado.",
+      highlights: ["reforzar permisos, revisar accesos y separar responsabilidades"],
     },
     {
       id: "q4",
@@ -76,6 +86,7 @@ const CEO_CONFIG: LabConversationConfig = {
         "Santi se obsesiona con detalles mínimos. Valen vive colapsado, entonces deja cosas a medias. Mica le habla a la IA como si fuera una mascota. " +
         "Yo soy la única que se toma en serio la arquitectura del sistema. " +
         "Y ahora resulta que por tener razón soy sospechosa, re heavy, re pesado.",
+      highlights: ["la única que se toma en serio la arquitectura del sistema"],
     },
     {
       id: "q6",
@@ -85,6 +96,10 @@ const CEO_CONFIG: LabConversationConfig = {
         "Su credencial fue usada. Su control falló. Su proyecto explotó. " +
         "¿Que alguien pudo haberle robado el acceso? Sí, obvio. Pero eso también habla mal de ella. " +
         "En programación hay una regla básica: si tu sistema permite un desastre, el desastre también es parte de tu diseño.",
+      highlights: [
+        "eso también habla mal de ella",
+        "el desastre también es parte de tu diseño",
+      ],
     },
   ],
 }

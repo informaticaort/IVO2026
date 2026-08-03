@@ -1,3 +1,9 @@
+"use client"
+
+import { useEffect, useState } from "react"
+
+import { cidiUnlocked as readCidiUnlocked } from "@/lib/presence/types"
+
 type Room = {
   x: number
   y: number
@@ -163,11 +169,14 @@ function PlainRoom({ x, y, w, h }: Room) {
   )
 }
 
-function LabeledRoom({ room }: { room: Room }) {
+function LabeledRoom({ room, locked = false }: { room: Room; locked?: boolean }) {
   const isKey = room.tone === "key"
   const cx = room.x + room.w / 2
   const cy = room.y + room.h / 2
-  const accent = room.color ?? (isKey ? "var(--neon-green)" : "var(--neon-cyan)")
+  // Bloqueado: acento gris apagado en lugar del color del laboratorio.
+  const accent = locked
+    ? "oklch(0.62 0.03 264)"
+    : room.color ?? (isKey ? "var(--neon-green)" : "var(--neon-cyan)")
   const stroke = accent
   const fill = isKey
     ? `color-mix(in oklch, ${accent} 16%, transparent)`
@@ -178,15 +187,19 @@ function LabeledRoom({ room }: { room: Room }) {
   const lines = isKey ? [room.label ?? ""] : (room.label ?? "").split(" ")
   const lineHeight = isKey ? 0 : 11 * PLAN_SCALE
   const startY = cy - ((lines.length - 1) * lineHeight) / 2
+  // Con candado subimos el nombre para dejar lugar al candado y la pista.
+  const labelY = locked ? cy - 46 : room.subtitle ? cy - 6 : startY
 
   const content = (
     <g
+      opacity={locked ? 0.6 : 1}
       style={
-        isKey
+        isKey && !locked
           ? { filter: `drop-shadow(0 0 6px color-mix(in oklch, ${accent} 65%, transparent))` }
           : undefined
       }
     >
+      {locked ? <title>Bloqueado: completá AMI, HMP, CEO y LUM primero.</title> : null}
       <rect
         x={room.x}
         y={room.y}
@@ -195,8 +208,9 @@ function LabeledRoom({ room }: { room: Room }) {
         fill={fill}
         stroke={stroke}
         strokeWidth={isKey ? 4 : 3}
+        strokeDasharray={locked ? "12 9" : undefined}
       />
-      {room.href ? (
+      {room.href && !locked ? (
         <rect
           x={room.x}
           y={room.y}
@@ -209,7 +223,7 @@ function LabeledRoom({ room }: { room: Room }) {
       ) : null}
       <text
         x={cx}
-        y={room.subtitle ? cy - 6 : startY}
+        y={labelY}
         textAnchor="middle"
         dominantBaseline="central"
         transform={room.vertical ? `rotate(-90 ${cx} ${cy})` : undefined}
@@ -226,7 +240,34 @@ function LabeledRoom({ room }: { room: Room }) {
               </tspan>
             ))}
       </text>
-      {room.subtitle ? (
+      {locked ? (
+        <>
+          {/* Candado dibujado + pista de qué falta para desbloquear. */}
+          <g fill="none" stroke={stroke} strokeWidth={5}>
+            <rect
+              x={cx - 26}
+              y={cy + 10}
+              width={52}
+              height={44}
+              rx={7}
+              fill={`color-mix(in oklch, ${accent} 20%, transparent)`}
+            />
+            <path d={`M ${cx - 15} ${cy + 10} v -11 a 15 15 0 0 1 30 0 v 11`} />
+          </g>
+          <text
+            x={cx}
+            y={cy + 82}
+            textAnchor="middle"
+            dominantBaseline="central"
+            className="font-mono"
+            fill={stroke}
+            fillOpacity={0.9}
+            fontSize={7.5 * PLAN_SCALE}
+          >
+            Completá AMI · HMP · CEO · LUM
+          </text>
+        </>
+      ) : room.subtitle ? (
         <text
           x={cx}
           y={cy + 12}
@@ -243,7 +284,7 @@ function LabeledRoom({ room }: { room: Room }) {
     </g>
   )
 
-  if (room.href) {
+  if (room.href && !locked) {
     return (
       <a
         href={room.href}
@@ -268,6 +309,15 @@ const VIEW_W = PLAN_WIDTH * PLAN_SCALE + VIEWBOX_PADDING * 2
 const VIEW_H = (PLAN_HEIGHT - PLAN_TOP) * PLAN_SCALE + VIEWBOX_PADDING * 2
 
 export function FloorPlan() {
+  // CIDI (juego final) arranca bloqueado y se habilita cuando los otros 4
+  // ámbitos figuran como resueltos en localStorage. Se lee al montar (y el
+  // plano se re-monta al volver desde cada juego, así queda al día).
+  const [cidiUnlocked, setCidiUnlocked] = useState(false)
+
+  useEffect(() => {
+    setCidiUnlocked(readCidiUnlocked())
+  }, [])
+
   return (
     <svg
       viewBox={`${VIEW_X} ${VIEW_Y} ${VIEW_W} ${VIEW_H}`}
@@ -306,7 +356,11 @@ export function FloorPlan() {
       ))}
 
       {SCALED_LABELED_ROOMS.map((room, i) => (
-        <LabeledRoom key={`labeled-${i}`} room={room} />
+        <LabeledRoom
+          key={`labeled-${i}`}
+          room={room}
+          locked={room.label === "CIDI" && !cidiUnlocked}
+        />
       ))}
 
       {SCALED_DOORS.map((door, i) => (

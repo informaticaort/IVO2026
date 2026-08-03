@@ -7,7 +7,17 @@ import Link from "next/link"
 import { DONE_KEY_PREFIX } from "@/lib/presence/types"
 import { LAB_COLORS } from "./floor-plan"
 
-export type LabQuestion = { id: string; question: string; answer: string }
+export type LabQuestion = {
+  id: string
+  question: string
+  answer: string
+  /**
+   * Frases textuales del `answer` que se resaltan en el registro de la
+   * entrevista como pistas para encontrar al culpable. Coincidencia literal
+   * (sin distinguir mayúsculas).
+   */
+  highlights?: string[]
+}
 
 export type LabConversationConfig = {
   /** Acrónimo del ámbito: define imagen (…PixelArt.png) y color del recuadro. */
@@ -20,6 +30,11 @@ export type LabConversationConfig = {
   questions: LabQuestion[]
   /** Frase de cierre al iniciar el juego. */
   closingSpeech: string
+  /**
+   * Contraseña que entrega el juego de este ámbito. Si se define, se muestra al
+   * final del registro de la entrevista una vez que el ámbito está resuelto.
+   */
+  password?: string
   /**
    * Frase genérica que se muestra cuando el jugador vuelve a entrar al ámbito
    * DESPUÉS de haberlo resuelto: puede revisar los logs de la entrevista pero
@@ -68,6 +83,39 @@ const DEFAULT_COMPLETED_SPEECH =
   "Este sector ya quedó resuelto. No tengo nada nuevo para contarte, " +
   "pero podés revisar el registro de la entrevista cuando quieras."
 
+/** Escapa un texto para usarlo como literal dentro de una expresión regular. */
+function escapeRegExp(s: string) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+}
+
+/**
+ * Devuelve el texto con las frases-pista resaltadas. Las coincidencias son
+ * literales y sin distinguir mayúsculas; las frases más largas tienen prioridad
+ * para evitar que una corta parta a una más larga.
+ */
+function highlightClues(text: string, clues?: string[]): ReactNode {
+  const phrases = (clues ?? []).map((c) => c.trim()).filter(Boolean)
+  if (phrases.length === 0) return text
+  const pattern = phrases
+    .sort((a, b) => b.length - a.length)
+    .map(escapeRegExp)
+    .join("|")
+  const re = new RegExp(`(${pattern})`, "gi")
+  return text.split(re).map((part, i) =>
+    // Con un único grupo de captura, los índices impares son las coincidencias.
+    i % 2 === 1 ? (
+      <mark
+        key={i}
+        className="rounded-[3px] bg-[#facc15]/25 px-0.5 font-semibold text-[#fde047]"
+      >
+        {part}
+      </mark>
+    ) : (
+      <span key={i}>{part}</span>
+    ),
+  )
+}
+
 /** "CEO" -> "/images/CeoPixelArt.png" */
 function imageForAcronym(acronym: string) {
   const name =
@@ -93,6 +141,7 @@ export function LabConversation({
     questions,
     closingSpeech,
     completedSpeech,
+    password,
     gameHotspot,
     framedGame,
   } = config
@@ -107,6 +156,9 @@ export function LabConversation({
   const [showHistory, setShowHistory] = useState(false)
   // `completed` = el ámbito ya fue resuelto en una visita anterior.
   const [completed, setCompleted] = useState(false)
+  // `lockedIn` = el equipo ya entró a un juego. Desde ese momento no se puede
+  // salir de la sala (se oculta "Volver") hasta completar el ámbito.
+  const [lockedIn, setLockedIn] = useState(false)
 
   const doneKey = `${DONE_KEY_PREFIX}${acronym}`
 
@@ -124,6 +176,12 @@ export function LabConversation({
       /* noop */
     }
   }, [doneKey, questions, completedSpeech])
+
+  // Entrar a un juego: además de iniciarlo, bloquea la salida de la sala.
+  function startGame() {
+    setStarted(true)
+    setLockedIn(true)
+  }
 
   // Marca el ámbito como resuelto (lo llama el juego al ganar).
   function markCompleted() {
@@ -187,13 +245,16 @@ export function LabConversation({
         className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_bottom,oklch(0.1_0.04_264/0.35)_0%,transparent_30%,oklch(0.1_0.04_264/0.85)_100%)]"
       />
 
-      {/* Volver */}
-      <Link
-        href="/plano"
-        className="absolute right-4 top-4 z-40 rounded-md border-2 border-[var(--neon-cyan)]/60 bg-[oklch(0.14_0.04_264/0.7)] px-4 py-2 font-pixel text-xs text-[var(--neon-cyan)] transition-colors hover:bg-[var(--neon-cyan)] hover:text-background"
-      >
-        Volver
-      </Link>
+      {/* Volver: se oculta al entrar a un juego. No se puede salir de la sala
+          hasta completar el ámbito (reaparece una vez resuelto). */}
+      {!lockedIn || completed ? (
+        <Link
+          href="/plano"
+          className="absolute right-4 top-4 z-40 rounded-md border-2 border-[var(--neon-cyan)]/60 bg-[oklch(0.14_0.04_264/0.7)] px-4 py-2 font-pixel text-xs text-[var(--neon-cyan)] transition-colors hover:bg-[var(--neon-cyan)] hover:text-background"
+        >
+          Volver
+        </Link>
+      ) : null}
 
       {/* Historial de la entrevista: botón cuadrado con puntas redondas,
           fijo en la esquina inferior derecha de la pantalla. */}
@@ -271,12 +332,24 @@ export function LabConversation({
                         {speaker}
                       </p>
                       <p className="whitespace-pre-line font-mono text-sm leading-snug text-foreground/70">
-                        {q.answer}
+                        {highlightClues(q.answer, q.highlights)}
                       </p>
                     </li>
                   ))}
                 </ul>
               )}
+
+              {/* Contraseña encontrada: solo si el ámbito ya está resuelto. */}
+              {completed && password ? (
+                <div className="mt-3 rounded-lg border-2 border-[var(--neon-green)]/60 bg-[oklch(0.1_0.05_264/0.7)] p-3 text-center">
+                  <p className="font-pixel text-[0.6rem] uppercase tracking-[0.25em] text-white/60">
+                    Contraseña encontrada
+                  </p>
+                  <p className="mt-1 font-pixel text-2xl tracking-[0.3em] text-[var(--neon-green)]">
+                    {password}
+                  </p>
+                </div>
+              ) : null}
             </div>
           </div>
         </div>
@@ -329,7 +402,7 @@ export function LabConversation({
             {hotspotActive ? (
               <button
                 type="button"
-                onClick={() => setStarted(true)}
+                onClick={startGame}
                 aria-label="Computadora con pantalla azul: iniciar el juego"
                 title="Esta computadora se ve extraña…"
                 className="absolute z-30 cursor-pointer"
@@ -413,7 +486,7 @@ export function LabConversation({
                   {allAsked && !gameHotspot ? (
                     <button
                       type="button"
-                      onClick={() => setStarted(true)}
+                      onClick={startGame}
                       className="shrink-0 rounded-md border-2 border-[var(--neon-green)]/70 bg-[oklch(0.14_0.04_264/0.7)] px-3 py-1.5 font-pixel text-[0.68rem] text-[var(--neon-green)] transition-colors hover:bg-[var(--neon-green)] hover:text-background"
                     >
                       Iniciar juego

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 
 /* -------------------------------------------------------------------------
@@ -39,6 +39,15 @@ export function AmiEquationsGame({
   const [error, setError] = useState(false)
   const [won, setWon] = useState(false)
   const [showTable, setShowTable] = useState(false)
+  const tableRef = useRef<HTMLDivElement>(null)
+
+  // Al abrir la tabla (por el botón o por el término "código ASCII"), la
+  // llevamos a la vista para que el cambio sea evidente.
+  useEffect(() => {
+    if (showTable) {
+      tableRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" })
+    }
+  }, [showTable])
 
   function handleAnswer(id: string, value: string) {
     setAnswers((prev) => ({ ...prev, [id]: value }))
@@ -106,9 +115,17 @@ export function AmiEquationsGame({
           </div>
 
           <p className="font-mono text-[1.05rem] leading-relaxed text-white/90">
-            Resolvé las 7 ecuaciones. Cada resultado es el código ASCII de una
-            letra. Las 7 letras, en orden, forman la contraseña que desbloquea
-            la terminal.
+            Resolvé las 7 ecuaciones. Cada resultado es el{" "}
+            <button
+              type="button"
+              onClick={() => setShowTable(true)}
+              title="Ver la tabla ASCII"
+              className="rounded bg-[var(--neon-cyan)]/15 px-1 font-bold text-[var(--neon-cyan)] underline decoration-dotted underline-offset-2 transition-colors hover:bg-[var(--neon-cyan)] hover:text-[#061a8f]"
+            >
+              código ASCII
+            </button>{" "}
+            de una letra. Las 7 letras, en orden, forman la contraseña que
+            desbloquea la terminal.
           </p>
 
           {/* Ecuaciones con verificación del resultado numérico */}
@@ -154,7 +171,7 @@ export function AmiEquationsGame({
           </ul>
 
           {/* Ayuda: tabla ASCII */}
-          <div>
+          <div ref={tableRef}>
             <button
               type="button"
               onClick={() => setShowTable((v) => !v)}
