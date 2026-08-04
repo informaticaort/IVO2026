@@ -75,8 +75,10 @@ type HistoryId = "delete" | "fix"
 // que tiene que coincidir exactamente con la de allá.
 const FRAGMENT_CODE = "HACK3D"
 
-// Contraseña que bloqueó la IA corrupta sobre VS Code (se revela en ADDE Labs).
-const VSCODE_PASSWORD = "LIBERAR"
+// Contraseña que desbloquea VS Code. Se revela en ADDE Labs, dibujada dentro
+// de LIBERAR.png (por eso el archivo conserva ese nombre). Es un código poco
+// intuitivo a propósito: obliga a encontrarlo ahí y no se adivina de memoria.
+const VSCODE_PASSWORD = "K7-NOVA"
 
 // Posiciones de los íconos sobre Escritorio.png (en % de la imagen). Los
 // cuatro están en una sola columna a la izquierda; cada área cubre el ícono
@@ -521,7 +523,7 @@ function AddeLabsWindow({
  * y ADDE Labs: ocupa todo el recuadro del ámbito, no una ventanita chica.
  *
  * Bloqueada: se ve AppBloqueada.png (que ya trae su barra de título y su X)
- * con un campo de contraseña superpuesto en el hueco del panel; solo LIBERAR
+ * con un campo de contraseña superpuesto en el hueco del panel; solo K7-NOVA
  * desbloquea. Desbloqueada: el editor, que no es una captura sino la UI real
  * donde hay que activar la variable, así que se dibuja a pantalla completa
  * con su propia barra de título estilo VS Code.
@@ -724,7 +726,15 @@ function VsCodeWindow({
           <CodeLine n={11}>
             <span className="text-[#d4d4d4]">{"}"}</span>
           </CodeLine>
-          <CodeLine n={12}>&nbsp;</CodeLine>
+          {/* Marca del hacker: un comentario "de más" que parece un apunte
+              suelto, pero es la frase "re heavy re pesado" escrita al revés
+              (odasep er yvaeh er). Es la muletilla de Belen en la entrevista,
+              así que leerla de atrás para adelante la delata. Sin herramientas:
+              se resuelve leyéndola al revés. Va tenue, como algo que quedó
+              pegado en el código sin querer. */}
+          <CodeLine n={12}>
+            <span className="text-[#6a9955]/70">{"// nota: odasep er yvaeh er"}</span>
+          </CodeLine>
           <CodeLine n={13}>
             <span className="text-[#dcdcaa]">console</span>
             <span className="text-[#d4d4d4]">.</span>
@@ -841,7 +851,7 @@ type Discovery =
   | "labs-rota"
   /** Encontró un archivo eliminado en la papelera. */
   | "archivo-en-papelera"
-  /** Vio la contraseña LIBERAR en la información extra de ADDE Labs. */
+  /** Vio la contraseña K7-NOVA en la información extra de ADDE Labs. */
   | "contrasena"
 
 type ThoughtState = {
@@ -880,7 +890,7 @@ function getThought(s: ThoughtState): Thought | null {
       if (sabe("contrasena")) {
         return {
           id: "vscode-con-clave",
-          text: "Ahora sí: la contraseña era LIBERAR.",
+          text: "Ahora sí: la contraseña era K7-NOVA.",
         }
       }
       return {
@@ -945,7 +955,7 @@ function getThought(s: ThoughtState): Thought | null {
     return s.extraInfoOpen
       ? {
           id: "labs-clave",
-          text: "LIBERAR. Esa es la contraseña que necesito para Visual Studio Code.",
+          text: "K7-NOVA. Esa es la contraseña que necesito para Visual Studio Code.",
         }
       : {
           id: "labs-restaurada",
@@ -1158,7 +1168,11 @@ export function CeoDesktopGame({
     if (orderCorrect) setSolved(true)
   }
 
-  /** Desbloquea VS Code solo con LIBERAR (sin distinguir mayúsculas ni espacios). */
+  /**
+   * Desbloquea VS Code solo con la contraseña exacta. Ignora mayúsculas y
+   * espacios al borde (k7-nova y "  K7-NOVA " sirven), pero el guion sí hay
+   * que escribirlo tal como aparece en ADDE Labs.
+   */
   function handleUnlockVscode() {
     if (passwordInput.trim().toUpperCase() === VSCODE_PASSWORD) {
       setVscodeUnlocked(true)
@@ -1322,7 +1336,7 @@ export function CeoDesktopGame({
               />
             ) : null}
 
-            {/* Ventana: VS Code → bloqueado hasta ingresar LIBERAR, y después
+            {/* Ventana: VS Code → bloqueado hasta ingresar K7-NOVA, y después
                 el código real que hay que "activar" */}
             {openWindow === "vscode" ? (
               <VsCodeWindow

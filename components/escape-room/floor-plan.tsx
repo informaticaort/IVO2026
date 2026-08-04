@@ -82,6 +82,10 @@ const PLAIN_ROOMS: Room[] = [
   {x: 550, y:670, w: 100, h: 100},
 
   {x: 650, y:192, w: 80, h: 50},
+
+  { x: 0, y: 492, w: 50, h: 100},
+  { x: 50, y: 492, w: 50, h: 100},
+  { x: 100, y: 492, w: 100, h: 100}
 ]
 
 /** Puertas / accesos bloqueados */
@@ -146,12 +150,7 @@ const LABELED_ROOMS: Room[] = [
     color: LAB_COLORS.LUM,
     href: "/lum-game",
     ariaLabel: "Abrir juego de LUM",
-  },
-
-  /** OFICINAS SECUNDARIAS */
-  { x: 0, y: 492, w: 50, h: 100, label: "Dami", tone: "minor" },
-  { x: 50, y: 492, w: 50, h: 100, label: "Profes info", tone: "minor" },
-  { x: 100, y: 492, w: 100, h: 100, label: "MEP", tone: "minor" },
+  }
 ]
 
 function PlainRoom({ x, y, w, h }: Room) {
