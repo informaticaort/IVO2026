@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 
@@ -25,48 +25,129 @@ import { LAB_COLORS } from "./floor-plan"
  * imagen, con barra de título estilo Windows (no macOS).
  * ---------------------------------------------------------------------- */
 
-type Step = { id: string; text: string; icon: string }
+/**
+ * Bloques de la función `ordenar()`: código JavaScript real (bubble sort
+ * optimizado). Cada bloque es una o más líneas con su sangría ya puesta, así
+ * que apilados en el orden correcto forman un archivo válido y ejecutable.
+ * `label` explica en español qué hace ese bloque, para conectar la sintaxis
+ * con su significado. El desafío es ordenarlos.
+ */
+type CodeBlock = { id: string; label: string; lines: string[] }
 
-// Pasos en pseudocódigo clásico (INICIO/MIENTRAS/SI/ENTONCES/FIN) que, en
-// este orden, describen el algoritmo completo para ordenar la lista
-// (bubble sort) en español simple, sin sintaxis de ningún lenguaje real.
-const CORRECT_ORDER: Step[] = [
+const CODE_BLOCKS: CodeBlock[] = [
   {
-    id: "s1",
-    icon: "🏁",
-    text: "INICIO\nSuponer que todavía puede haber números para intercambiar",
+    id: "b1",
+    label: "Definir la función que recibe la lista.",
+    lines: ["function ordenar(lista) {"],
   },
   {
-    id: "s2",
-    icon: "🔁",
-    text: "MIENTRAS pueda haber cambios, HACER:\nSuponer que en esta vuelta no va a haber ningún cambio",
+    id: "b2",
+    label: "Suponer que hay desorden y repetir mientras lo haya.",
+    lines: ["  let ordenada = false", "  while (!ordenada) {"],
   },
   {
-    id: "s3",
-    icon: "👉",
-    text: "PARA cada par de números vecinos, HACER:",
+    id: "b3",
+    label: "Antes de cada pasada, darla por ordenada y recorrerla.",
+    lines: [
+      "    ordenada = true",
+      "    for (let i = 0; i < lista.length - 1; i++) {",
+    ],
   },
   {
-    id: "s4",
-    icon: "❓",
-    text: "SI el número de la izquierda es mayor que el de la derecha, ENTONCES:\nIntercambiar los dos números de lugar\nMarcar que en esta vuelta sí hubo un cambio",
+    id: "b4",
+    label: "Comparar cada número con su vecino de la derecha.",
+    lines: ["      if (lista[i] > lista[i + 1]) {"],
   },
   {
-    id: "s5",
-    icon: "🔄",
-    text: "Terminar de revisar todos los pares y volver a repetir el MIENTRAS",
+    id: "b5",
+    label: "Si están al revés, intercambiarlos y anotar el cambio.",
+    lines: ["        intercambiar(lista, i, i + 1)", "        ordenada = false"],
   },
   {
-    id: "s6",
-    icon: "✅",
-    text: "Cuando una vuelta completa no tuvo cambios, la lista ya está ordenada\nFIN",
+    id: "b6",
+    label: "Cerrar los ciclos y devolver la lista ordenada.",
+    lines: ["      }", "    }", "  }", "  return lista", "}"],
   },
 ]
 
-// Orden inicial mezclado: ninguna línea arranca en su lugar correcto.
-const SCRAMBLED_ORDER = ["s4", "s6", "s1", "s5", "s3", "s2"]
+// Ids en el orden correcto y un desorden inicial (derangement: ningún bloque
+// arranca en su posición final, para que haya que mover todos).
+const CORRECT_ORDER_IDS = CODE_BLOCKS.map((b) => b.id)
+const SCRAMBLED_ORDER = ["b2", "b4", "b6", "b1", "b3", "b5"]
+const BLOCKS_BY_ID = Object.fromEntries(CODE_BLOCKS.map((b) => [b.id, b]))
 
-const STEPS_BY_ID = Object.fromEntries(CORRECT_ORDER.map((s) => [s.id, s]))
+// Lista de ejemplo que "ordena" el algoritmo al ejecutarlo, y su resultado.
+const SAMPLE_LIST = [5, 2, 9, 1, 7, 3]
+const SORTED_LIST = [...SAMPLE_LIST].sort((a, b) => a - b)
+
+type SortFrame = { arr: number[]; a: number; b: number; swapped: boolean }
+
+/**
+ * Reproduce el bubble sort sobre `input` y registra cada comparación (con qué
+ * par se miró y si hubo intercambio), para animar la ejecución paso a paso.
+ */
+function buildSortFrames(input: number[]): SortFrame[] {
+  const arr = [...input]
+  const frames: SortFrame[] = []
+  let ordenada = false
+  while (!ordenada) {
+    ordenada = true
+    for (let i = 0; i < arr.length - 1; i++) {
+      const swapped = arr[i] > arr[i + 1]
+      if (swapped) {
+        ;[arr[i], arr[i + 1]] = [arr[i + 1], arr[i]]
+        ordenada = false
+      }
+      frames.push({ arr: [...arr], a: i, b: i + 1, swapped })
+    }
+  }
+  return frames
+}
+
+// Coloreo de sintaxis estilo editor: cada tipo de token lleva su color.
+const CODE_KEYWORDS = new Set(["function", "let", "while", "for", "if", "return", "else"])
+const CODE_LITERALS = new Set(["true", "false", "const", "var", "null"])
+const CODE_CALLABLES = new Set(["ordenar", "intercambiar"])
+
+/** Devuelve la línea de código coloreada por tipo de token (keyword, número, etc.). */
+function highlightCode(line: string, keyPrefix: string): React.ReactNode[] {
+  const commentAt = line.indexOf("//")
+  const code = commentAt >= 0 ? line.slice(0, commentAt) : line
+  const comment = commentAt >= 0 ? line.slice(commentAt) : ""
+  const nodes: React.ReactNode[] = []
+  const tokenRe = /([A-Za-z_$][A-Za-z0-9_$]*|\d+|\s+|[^\sA-Za-z0-9_$]+)/g
+  let m: RegExpExecArray | null
+  let i = 0
+  while ((m = tokenRe.exec(code))) {
+    const t = m[0]
+    let cls = "text-[#d4d4d4]"
+    if (/^\d+$/.test(t)) cls = "text-[#b5cea8]"
+    else if (/^\s+$/.test(t)) cls = ""
+    else if (/^[A-Za-z_$]/.test(t)) {
+      if (CODE_KEYWORDS.has(t)) cls = "text-[#c586c0]"
+      else if (CODE_LITERALS.has(t)) cls = "text-[#569cd6]"
+      else if (CODE_CALLABLES.has(t)) cls = "text-[#dcdcaa]"
+      else cls = "text-[#9cdcfe]"
+    }
+    nodes.push(
+      cls ? (
+        <span key={`${keyPrefix}-${i++}`} className={cls}>
+          {t}
+        </span>
+      ) : (
+        t
+      ),
+    )
+  }
+  if (comment) {
+    nodes.push(
+      <span key={`${keyPrefix}-c`} className="text-[#6a9955]">
+        {comment}
+      </span>,
+    )
+  }
+  return nodes
+}
 
 type HistoryId = "delete" | "fix"
 
@@ -109,64 +190,110 @@ function CodeLine({ n, children }: { n: number; children: React.ReactNode }) {
   )
 }
 
-// Palabras del pseudocódigo que se resaltan dentro de cada tarjeta.
-const PSEUDOCODE_KEYWORDS = ["INICIO", "FIN", "MIENTRAS", "HACER", "PARA", "SI", "ENTONCES"]
-
-/** Resalta en color de acento las palabras clave del pseudocódigo dentro de una línea. */
-function highlightKeywords(line: string, keyPrefix: string): React.ReactNode[] {
-  const re = new RegExp(`\\b(${PSEUDOCODE_KEYWORDS.join("|")})\\b`, "g")
-  const nodes: React.ReactNode[] = []
-  let lastIndex = 0
-  let match: RegExpExecArray | null
-  let i = 0
-  while ((match = re.exec(line))) {
-    if (match.index > lastIndex) nodes.push(line.slice(lastIndex, match.index))
-    nodes.push(
-      <span key={`${keyPrefix}-${i++}`} className="font-bold neon-cyan">
-        {match[0]}
-      </span>,
-    )
-    lastIndex = match.index + match[0].length
-  }
-  if (lastIndex < line.length) nodes.push(line.slice(lastIndex))
-  return nodes
-}
-
 /**
- * Juego de ordenar: pantalla completa con tarjetas grandes y prolijas (sin
- * scroll, se leen bien en cualquier tamaño) en vez de una ventanita de
- * "Bloc de notas". Cada tarjeta es un paso en pseudocódigo simple, en
- * español, sin sintaxis de ningún lenguaje real — pensado para gente que no
- * programa. En el orden correcto arman el algoritmo completo para ordenar
- * la lista.
+ * Desafío del CEO: reconstruir la función `ordenar()`.
+ *
+ * En vez de pseudocódigo, se ensambla código JavaScript real arrastrando
+ * bloques hasta armar un bubble sort válido, y se lo "ejecuta": si el orden
+ * está bien, corre una animación que ordena una lista de barras y se da por
+ * resuelto; si está mal, tira un error y marca los bloques fuera de lugar.
+ *
+ * Es autónomo: maneja su propio estado (orden, arrastre, animación) y solo
+ * avisa al padre cuando queda resuelto (onSolved), que es lo que habilita
+ * el resto del ámbito (ADDE Labs).
  */
+type SortPhase = "editing" | "running" | "done"
+
 function SortAlgorithmGame({
-  order,
-  dragIndex,
-  dragOverIndex,
-  checked,
-  orderCorrect,
   solved,
-  onDragStart,
-  onDragOverIndex,
-  onDragEnd,
-  onDropIndex,
-  onSave,
+  onSolved,
   onClose,
 }: {
-  order: string[]
-  dragIndex: number | null
-  dragOverIndex: number | null
-  checked: boolean
-  orderCorrect: boolean
   solved: boolean
-  onDragStart: (i: number) => void
-  onDragOverIndex: (i: number) => void
-  onDragEnd: () => void
-  onDropIndex: (i: number) => void
-  onSave: () => void
+  onSolved: () => void
   onClose: () => void
 }) {
+  const [order, setOrder] = useState<string[]>(() =>
+    solved ? CORRECT_ORDER_IDS : SCRAMBLED_ORDER,
+  )
+  const [dragIndex, setDragIndex] = useState<number | null>(null)
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
+  const [phase, setPhase] = useState<SortPhase>(solved ? "done" : "editing")
+  const [checked, setChecked] = useState(false)
+  const [bars, setBars] = useState<number[]>(solved ? SORTED_LIST : SAMPLE_LIST)
+  const [activePair, setActivePair] = useState<[number, number] | null>(null)
+  const [status, setStatus] = useState("")
+
+  const frames = useMemo(() => buildSortFrames(SAMPLE_LIST), [])
+  const orderCorrect = order.every((id, i) => id === CORRECT_ORDER_IDS[i])
+  const editable = phase === "editing"
+  const maxBar = Math.max(...SAMPLE_LIST)
+
+  // onSolved en un ref: así el efecto de animación no se reinicia si el padre
+  // se re-renderiza y cambia la identidad de la función.
+  const onSolvedRef = useRef(onSolved)
+  useEffect(() => {
+    onSolvedRef.current = onSolved
+  }, [onSolved])
+
+  // Animación de la ejecución: recorre los frames del bubble sort, resaltando
+  // el par comparado; al terminar, deja la lista ordenada y marca resuelto.
+  useEffect(() => {
+    if (phase !== "running") return
+    let idx = 0
+    const id = window.setInterval(() => {
+      if (idx >= frames.length) {
+        window.clearInterval(id)
+        setActivePair(null)
+        setBars(SORTED_LIST)
+        setStatus(`Lista ordenada: [${SORTED_LIST.join(", ")}]`)
+        setPhase("done")
+        onSolvedRef.current()
+        return
+      }
+      const f = frames[idx]
+      setBars(f.arr)
+      setActivePair([f.a, f.b])
+      setStatus(
+        f.swapped
+          ? `lista[${f.a}] > lista[${f.b}] → intercambiar`
+          : `lista[${f.a}] ≤ lista[${f.b}] → queda igual`,
+      )
+      idx++
+    }, 360)
+    return () => window.clearInterval(id)
+  }, [phase, frames])
+
+  function moveBlock(from: number, to: number) {
+    if (from === to) return
+    setOrder((prev) => {
+      const next = [...prev]
+      const [moved] = next.splice(from, 1)
+      next.splice(to, 0, moved)
+      return next
+    })
+    setChecked(false)
+  }
+
+  function handleRun() {
+    if (phase !== "editing") return
+    if (!orderCorrect) {
+      // Orden mal: marca los bloques (rojo/verde) y no ejecuta.
+      setChecked(true)
+      setStatus("")
+      return
+    }
+    setChecked(false)
+    setBars(SAMPLE_LIST)
+    setActivePair(null)
+    setStatus("")
+    setPhase("running")
+  }
+
+  // Número de línea con el que arranca cada bloque, para numerar el archivo
+  // entero de corrido como en un editor real.
+  let lineCounter = 1
+
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-background p-3 sm:p-6">
       <div
@@ -179,14 +306,15 @@ function SortAlgorithmGame({
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,oklch(0.1_0.04_264/0.9)_75%,oklch(0.08_0.04_264/0.97)_100%)]"
       />
 
-      <div className="relative flex h-full max-h-[calc(100vh-1.5rem)] w-full max-w-4xl flex-col overflow-hidden rounded-[1.5rem] border-4 border-[var(--neon-cyan)]/70 bg-[oklch(0.1_0.04_264/0.92)] p-4 shadow-[0_0_45px_color-mix(in_oklch,var(--neon-cyan)_35%,transparent)] sm:p-6">
-        <div className="flex shrink-0 items-center justify-between gap-3 pb-3 sm:pb-4">
+      <div className="relative flex h-full max-h-[calc(100vh-1.5rem)] w-full max-w-6xl flex-col overflow-hidden rounded-[1.5rem] border-4 border-[var(--neon-cyan)]/70 bg-[oklch(0.1_0.04_264/0.94)] shadow-[0_0_45px_color-mix(in_oklch,var(--neon-cyan)_35%,transparent)]">
+        {/* Encabezado */}
+        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-white/10 px-4 py-3 sm:px-6">
           <div className="min-w-0">
             <p className="truncate font-pixel text-xs uppercase tracking-[0.2em] neon-cyan sm:text-sm">
-              lógica_página · algoritmo para ordenar
+              ordenar.js · reconstruí el algoritmo
             </p>
             <p className="mt-1 font-mono text-[0.7rem] text-muted-foreground sm:text-xs">
-              Arrastrá los pasos (⠿) hasta que queden en el orden correcto.
+              Arrastrá los bloques (⠿) hasta armar la función, después tocá ▶ Ejecutar.
             </p>
           </div>
           <button
@@ -198,83 +326,161 @@ function SortAlgorithmGame({
           </button>
         </div>
 
-        <ul className="flex min-h-0 flex-1 flex-col gap-2 sm:gap-2.5">
-          {order.map((id, i) => {
-            const step = STEPS_BY_ID[id]
-            const isCorrect = checked && id === CORRECT_ORDER[i].id
-            const isWrong = checked && id !== CORRECT_ORDER[i].id
-            const isDragging = dragIndex === i
-            const isDragOver = dragOverIndex === i && dragIndex !== i
-            const lines = step.text.split("\n")
-            return (
-              <li
-                key={id}
-                draggable
-                onDragStart={() => onDragStart(i)}
-                onDragOver={(e) => {
-                  e.preventDefault()
-                  onDragOverIndex(i)
-                }}
-                onDragEnd={onDragEnd}
-                onDrop={(e) => {
-                  e.preventDefault()
-                  onDropIndex(i)
-                }}
-                className={`flex min-h-0 flex-1 cursor-grab items-center gap-3 rounded-xl border-2 px-3 py-2 transition-colors active:cursor-grabbing sm:gap-4 sm:px-4 ${
-                  isCorrect
-                    ? "border-[var(--neon-green)] bg-[color-mix(in_oklch,var(--neon-green)_14%,transparent)]"
-                    : isWrong
-                      ? "border-[var(--neon-red)] bg-[color-mix(in_oklch,var(--neon-red)_14%,transparent)]"
-                      : isDragOver
-                        ? "border-[var(--neon-cyan)] bg-[color-mix(in_oklch,var(--neon-cyan)_12%,transparent)]"
-                        : "border-white/15 bg-white/[0.04]"
-                } ${isDragging ? "opacity-40" : ""}`}
-              >
-                <span
-                  aria-hidden="true"
-                  className="shrink-0 text-lg text-muted-foreground sm:text-xl"
-                >
-                  ⠿
-                </span>
-                <span className="flex size-7 shrink-0 items-center justify-center rounded-full border-2 border-current font-pixel text-[0.65rem] text-[var(--neon-cyan)] sm:size-8 sm:text-xs">
-                  {i + 1}
-                </span>
-                <span
-                  aria-hidden="true"
-                  className="hidden shrink-0 text-xl sm:block sm:text-2xl"
-                >
-                  {step.icon}
-                </span>
-                <div className="min-w-0 flex-1 text-[clamp(0.72rem,1.3vw,1rem)] leading-snug text-foreground/90">
-                  {lines.map((line, li) => (
-                    <p key={li} className={li > 0 ? "mt-0.5 pl-4" : ""}>
-                      {highlightKeywords(line, `${id}-${li}`)}
-                    </p>
-                  ))}
-                </div>
-              </li>
-            )
-          })}
-        </ul>
+        <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 overflow-hidden p-3 sm:gap-4 sm:p-4 lg:grid-cols-[1.35fr_1fr]">
+          {/* Editor: bloques de código arrastrables */}
+          <div className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-white/10 bg-[#1e1e1e]">
+            <div className="flex shrink-0 items-center gap-2 border-b border-black/40 bg-[#2d2d2d] px-3 py-1.5">
+              <span aria-hidden="true">📄</span>
+              <span className="font-mono text-xs text-gray-200">ordenar.js</span>
+            </div>
+            <ul className="flex min-h-0 flex-1 flex-col gap-1.5 overflow-y-auto p-2 sm:p-3">
+              {order.map((id, i) => {
+                const block = BLOCKS_BY_ID[id]
+                const isCorrect = checked && id === CORRECT_ORDER_IDS[i]
+                const isWrong = checked && id !== CORRECT_ORDER_IDS[i]
+                const isDragging = dragIndex === i
+                const isDragOver = dragOverIndex === i && dragIndex !== i
+                const startLine = lineCounter
+                lineCounter += block.lines.length
+                return (
+                  <li
+                    key={id}
+                    draggable={editable}
+                    onDragStart={() => {
+                      if (editable) setDragIndex(i)
+                    }}
+                    onDragOver={(e) => {
+                      if (!editable) return
+                      e.preventDefault()
+                      if (dragOverIndex !== i) setDragOverIndex(i)
+                    }}
+                    onDragEnd={() => {
+                      setDragIndex(null)
+                      setDragOverIndex(null)
+                    }}
+                    onDrop={(e) => {
+                      if (!editable) return
+                      e.preventDefault()
+                      if (dragIndex !== null) moveBlock(dragIndex, i)
+                      setDragIndex(null)
+                      setDragOverIndex(null)
+                    }}
+                    className={`rounded-lg border-2 transition-colors ${
+                      editable ? "cursor-grab active:cursor-grabbing" : "cursor-default"
+                    } ${
+                      isCorrect
+                        ? "border-[var(--neon-green)] bg-[color-mix(in_oklch,var(--neon-green)_12%,transparent)]"
+                        : isWrong
+                          ? "border-[var(--neon-red)] bg-[color-mix(in_oklch,var(--neon-red)_12%,transparent)]"
+                          : isDragOver
+                            ? "border-[var(--neon-cyan)] bg-[color-mix(in_oklch,var(--neon-cyan)_10%,transparent)]"
+                            : "border-white/10 bg-white/[0.03]"
+                    } ${isDragging ? "opacity-40" : ""}`}
+                  >
+                    <div className="flex items-center gap-2 px-2 pt-1.5">
+                      <span aria-hidden="true" className="shrink-0 text-sm text-gray-500">
+                        ⠿
+                      </span>
+                      <span className="min-w-0 truncate font-mono text-[0.62rem] text-[var(--neon-cyan)]/80 sm:text-[0.68rem]">
+                        {block.label}
+                      </span>
+                    </div>
+                    <div className="px-2 pb-1.5 pt-1 font-mono text-[0.72rem] leading-relaxed sm:text-[0.8rem]">
+                      {block.lines.map((line, li) => (
+                        <div key={li} className="flex gap-3">
+                          <span className="w-5 shrink-0 select-none text-right text-[#6e7681]">
+                            {startLine + li}
+                          </span>
+                          <span className="min-w-0 overflow-x-auto whitespace-pre">
+                            {highlightCode(line, `${id}-${li}`)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </li>
+                )
+              })}
+            </ul>
+          </div>
 
-        <div className="flex shrink-0 flex-wrap items-center gap-3 pt-3 sm:pt-4">
-          <button
-            type="button"
-            onClick={onSave}
-            className="rounded-md border-2 border-[var(--neon-green)] bg-[color-mix(in_oklch,var(--neon-green)_18%,transparent)] px-4 py-2 font-pixel text-[0.6rem] uppercase tracking-wide text-[var(--neon-green)] transition-colors hover:bg-[var(--neon-green)] hover:text-background sm:text-[0.7rem]"
-          >
-            Probar orden
-          </button>
-          {checked && !orderCorrect ? (
-            <p className="font-mono text-[0.75rem] font-semibold text-[var(--neon-red)] sm:text-sm">
-              Todavía no está bien. Seguí probando.
-            </p>
-          ) : null}
-          {solved ? (
-            <p className="font-mono text-[0.75rem] font-semibold text-[var(--neon-green)] sm:text-sm">
-              ¡Listo! Cerrá esta ventana y andá a ADDE Labs.
-            </p>
-          ) : null}
+          {/* Panel de ejecución: barras + terminal + botón */}
+          <div className="flex min-h-0 flex-col gap-3 overflow-hidden">
+            {/* Visualización de la lista como barras */}
+            <div className="flex min-h-0 flex-1 flex-col rounded-xl border border-white/10 bg-[oklch(0.08_0.04_264/0.6)] p-3">
+              <p className="mb-2 shrink-0 font-pixel text-[0.6rem] uppercase tracking-wide text-muted-foreground">
+                lista
+              </p>
+              <div className="flex min-h-0 flex-1 items-end justify-center gap-2 sm:gap-3">
+                {bars.map((v, idx) => {
+                  const active =
+                    activePair !== null &&
+                    (activePair[0] === idx || activePair[1] === idx)
+                  return (
+                    <div
+                      key={idx}
+                      className="flex h-full flex-col items-center justify-end gap-1"
+                    >
+                      <div
+                        className={`w-6 rounded-t-sm transition-all duration-300 sm:w-8 ${
+                          active
+                            ? "bg-[var(--neon-cyan)] shadow-[0_0_12px_var(--neon-cyan)]"
+                            : phase === "done"
+                              ? "bg-[var(--neon-green)]"
+                              : "bg-[var(--neon-cyan)]/40"
+                        }`}
+                        style={{ height: `${Math.max((v / maxBar) * 100, 8)}%` }}
+                      />
+                      <span className="font-mono text-[0.7rem] text-foreground/80">
+                        {v}
+                      </span>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Terminal: salida de la "ejecución" */}
+            <div className="shrink-0 rounded-xl border border-white/10 bg-[#101113] p-3 font-mono text-[0.72rem] leading-relaxed sm:text-xs">
+              <p className="text-gray-500">&gt; node ordenar.js</p>
+              {checked && !orderCorrect ? (
+                <>
+                  <p className="text-[var(--neon-red)]">
+                    ✗ La función no quedó bien armada.
+                  </p>
+                  <p className="text-gray-400">
+                    Revisá los bloques en rojo: están fuera de lugar.
+                  </p>
+                </>
+              ) : phase === "running" ? (
+                <p className="text-[var(--neon-cyan)]">{status}</p>
+              ) : phase === "done" ? (
+                <p className="font-semibold text-[var(--neon-green)]">✓ {status}</p>
+              ) : (
+                <p className="text-gray-500">Ejecutá para probar el algoritmo…</p>
+              )}
+            </div>
+
+            {/* Botón ejecutar / estado resuelto */}
+            {phase === "done" ? (
+              <div className="shrink-0 rounded-xl border-2 border-[var(--neon-green)]/70 bg-[color-mix(in_oklch,var(--neon-green)_12%,transparent)] px-4 py-3 text-center">
+                <p className="font-pixel text-[0.7rem] uppercase tracking-wide text-[var(--neon-green)]">
+                  ¡Algoritmo restaurado!
+                </p>
+                <p className="mt-1 font-mono text-[0.72rem] text-foreground/80">
+                  Cerrá esta ventana y fijate cómo quedó ADDE Labs.
+                </p>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={handleRun}
+                disabled={phase === "running"}
+                className="shrink-0 rounded-xl border-2 border-[var(--neon-green)] bg-[color-mix(in_oklch,var(--neon-green)_18%,transparent)] px-4 py-3 font-pixel text-[0.7rem] uppercase tracking-wide text-[var(--neon-green)] transition-colors hover:bg-[var(--neon-green)] hover:text-background disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-[color-mix(in_oklch,var(--neon-green)_18%,transparent)] disabled:hover:text-[var(--neon-green)]"
+              >
+                {phase === "running" ? "Ejecutando…" : "▶ Ejecutar"}
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -1099,10 +1305,8 @@ export function CeoDesktopGame({
   const [openWindow, setOpenWindow] = useState<WindowKind>(null)
   const [fileSelected, setFileSelected] = useState(false)
   const [fileRestored, setFileRestored] = useState(false)
-  const [order, setOrder] = useState<string[]>(SCRAMBLED_ORDER)
-  const [dragIndex, setDragIndex] = useState<number | null>(null)
-  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
-  const [checked, setChecked] = useState(false)
+  // Se resuelve dentro de SortAlgorithmGame (que maneja su propio orden y
+  // ejecución); acá solo se guarda para habilitar ADDE Labs recuperada.
   const [solved, setSolved] = useState(false)
   const [historyView, setHistoryView] = useState<HistoryId | null>(null)
   const [extraInfoOpen, setExtraInfoOpen] = useState(false)
@@ -1118,7 +1322,6 @@ export function CeoDesktopGame({
   const [known, setKnown] = useState<Discovery[]>([])
 
   const color = LAB_COLORS.CEO
-  const orderCorrect = order.every((id, i) => id === CORRECT_ORDER[i].id)
 
   /** Anota un descubrimiento (sin repetirlo si ya estaba). */
   function discover(d: Discovery) {
@@ -1145,28 +1348,6 @@ export function CeoDesktopGame({
     iaRecuperada,
     known,
   })
-
-  function handleDrop(targetIndex: number) {
-    if (dragIndex === null || dragIndex === targetIndex) {
-      setDragIndex(null)
-      setDragOverIndex(null)
-      return
-    }
-    setOrder((prev) => {
-      const next = [...prev]
-      const [moved] = next.splice(dragIndex, 1)
-      next.splice(targetIndex, 0, moved)
-      return next
-    })
-    setChecked(false)
-    setDragIndex(null)
-    setDragOverIndex(null)
-  }
-
-  function handleSave() {
-    setChecked(true)
-    if (orderCorrect) setSolved(true)
-  }
 
   /**
    * Desbloquea VS Code solo con la contraseña exacta. Ignora mayúsculas y
@@ -1287,25 +1468,12 @@ export function CeoDesktopGame({
               />
             ) : null}
 
-            {/* Ventana: Papelera restaurada → juego de ordenar el algoritmo, pantalla completa */}
+            {/* Ventana: Papelera restaurada → desafío de armar y ejecutar el
+                algoritmo, a pantalla completa. */}
             {openWindow === "papelera" && fileRestored ? (
               <SortAlgorithmGame
-                order={order}
-                dragIndex={dragIndex}
-                dragOverIndex={dragOverIndex}
-                checked={checked}
-                orderCorrect={orderCorrect}
                 solved={solved}
-                onDragStart={(i) => setDragIndex(i)}
-                onDragOverIndex={(i) => {
-                  if (dragOverIndex !== i) setDragOverIndex(i)
-                }}
-                onDragEnd={() => {
-                  setDragIndex(null)
-                  setDragOverIndex(null)
-                }}
-                onDropIndex={handleDrop}
-                onSave={handleSave}
+                onSolved={() => setSolved(true)}
                 onClose={closeWindow}
               />
             ) : null}
