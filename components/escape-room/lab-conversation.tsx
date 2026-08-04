@@ -36,6 +36,16 @@ export type LabConversationConfig = {
    */
   password?: string
   /**
+   * Si es true, el botón "Volver" (al plano) se muestra SIEMPRE, incluso dentro
+   * del juego (no se aplica el bloqueo de sala). Se usa en CIDI (juego final).
+   */
+  exitAlwaysAvailable?: boolean
+  /**
+   * Si es true y ya se hizo la entrevista una vez (ya se entró al juego), al
+   * volver a entrar se saltea la entrevista y se va directo al juego.
+   */
+  resumeGameOnReturn?: boolean
+  /**
    * Frase genérica que se muestra cuando el jugador vuelve a entrar al ámbito
    * DESPUÉS de haberlo resuelto: puede revisar los logs de la entrevista pero
    * ya no puede volver a preguntar ni a jugar. Si se omite, se usa una por
@@ -142,6 +152,8 @@ export function LabConversation({
     closingSpeech,
     completedSpeech,
     password,
+    exitAlwaysAvailable,
+    resumeGameOnReturn,
     gameHotspot,
     framedGame,
   } = config
@@ -161,26 +173,40 @@ export function LabConversation({
   const [lockedIn, setLockedIn] = useState(false)
 
   const doneKey = `${DONE_KEY_PREFIX}${acronym}`
+  // Marca de que la entrevista ya se hizo (se entró al juego) al menos una vez.
+  const seenKey = `escape-room-seen-${acronym}`
 
   // Al entrar: si este ámbito ya está resuelto, no repetimos toda la entrevista.
   // Damos por hechas todas las preguntas (para que el registro quede completo),
   // mostramos una frase genérica y ocultamos las preguntas y el juego.
+  // Si no está resuelto pero ya se hizo la entrevista y el ámbito lo permite,
+  // entramos directo al juego (sin repetir las preguntas).
   useEffect(() => {
     try {
       if (localStorage.getItem(doneKey)) {
         setCompleted(true)
         setAsked(questions.map((q) => q.id))
         setSpeech(completedSpeech ?? DEFAULT_COMPLETED_SPEECH)
+      } else if (resumeGameOnReturn && localStorage.getItem(seenKey)) {
+        setAsked(questions.map((q) => q.id))
+        setStarted(true)
+        setLockedIn(true)
       }
     } catch {
       /* noop */
     }
-  }, [doneKey, questions, completedSpeech])
+  }, [doneKey, seenKey, questions, completedSpeech, resumeGameOnReturn])
 
-  // Entrar a un juego: además de iniciarlo, bloquea la salida de la sala.
+  // Entrar a un juego: además de iniciarlo, bloquea la salida de la sala y deja
+  // registrado que la entrevista ya se hizo (para poder reentrar directo).
   function startGame() {
     setStarted(true)
     setLockedIn(true)
+    try {
+      localStorage.setItem(seenKey, "1")
+    } catch {
+      /* noop */
+    }
   }
 
   // Marca el ámbito como resuelto (lo llama el juego al ganar).
@@ -246,8 +272,9 @@ export function LabConversation({
       />
 
       {/* Volver: se oculta al entrar a un juego. No se puede salir de la sala
-          hasta completar el ámbito (reaparece una vez resuelto). */}
-      {!lockedIn || completed ? (
+          hasta completar el ámbito (reaparece una vez resuelto). En ámbitos con
+          `exitAlwaysAvailable` (CIDI) se muestra siempre. */}
+      {!lockedIn || completed || exitAlwaysAvailable ? (
         <Link
           href="/plano"
           className="absolute right-4 top-4 z-40 rounded-md border-2 border-[var(--neon-cyan)]/60 bg-[oklch(0.14_0.04_264/0.7)] px-4 py-2 font-pixel text-xs text-[var(--neon-cyan)] transition-colors hover:bg-[var(--neon-cyan)] hover:text-background"

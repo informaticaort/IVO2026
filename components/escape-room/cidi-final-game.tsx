@@ -148,6 +148,16 @@ export function CidiFinalGame({
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-[oklch(0.05_0.03_264)] p-3 sm:p-4">
+      {/* Volver al plano: disponible en todo momento (CIDI es el juego final). */}
+      {phase !== "won" ? (
+        <Link
+          href="/plano"
+          className="fixed left-4 top-4 z-40 rounded-md border-2 border-[var(--neon-cyan)]/60 bg-[oklch(0.14_0.04_264/0.7)] px-4 py-2 font-pixel text-xs text-[var(--neon-cyan)] transition-colors hover:bg-[var(--neon-cyan)] hover:text-background"
+        >
+          Volver al plano
+        </Link>
+      ) : null}
+
       {onExit && phase !== "won" ? (
         <button
           type="button"

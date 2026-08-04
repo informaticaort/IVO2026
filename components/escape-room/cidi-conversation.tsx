@@ -17,6 +17,10 @@ const CIDI_CONFIG: LabConversationConfig = {
     "¡Perdón la demora! No me sonó el despertador. ¿Qué es todo este caos? ¿Por qué están las alarmas en rojo?",
   closingSpeech:
     "¡No hay tiempo que perder! Consigan los 4 fragmentos, ingrésenlos en el orden correcto de la estructura del sistema y entramos al CIDI. ¡Apúrense!",
+  // CIDI es el juego final: se puede volver al plano en todo momento y, si ya
+  // se hizo la entrevista una vez, al reentrar se va directo al juego.
+  exitAlwaysAvailable: true,
+  resumeGameOnReturn: true,
   questions: [
     {
       id: "q1",
