@@ -2,6 +2,7 @@
 
 import { CyberFrame } from "./cyber-frame"
 import { FloorPlan, LAB_COLORS } from "./floor-plan"
+import { RoomsProgress } from "./rooms-progress"
 import type { TeamData } from "./team-setup-screen"
 
 const LEGEND_LABS = ["CIDI", "AMI", "HMP", "CEO", "LUM"] as const
@@ -35,11 +36,14 @@ export function ProcessingScreen({ team }: { team: TeamData }) {
           </div>
         </div>
 
-        {/* Plano del piso con laboratorios destacados */}
-        <div className="flex min-h-0 flex-1 items-center justify-center rounded-[1.5rem] border border-[var(--neon-cyan)]/30 bg-[oklch(0.09_0.04_264/0.72)] p-3 shadow-[0_0_36px_color-mix(in_oklch,var(--neon-cyan)_18%,transparent)] sm:rounded-[2rem] sm:p-4">
-          <div className="flex h-full min-h-0 w-full items-center justify-center overflow-auto">
-            <FloorPlan />
+        {/* Plano del piso + panel de progreso al costado */}
+        <div className="flex min-h-0 flex-1 flex-col gap-4 lg:flex-row lg:gap-6">
+          <div className="flex min-h-0 flex-1 items-center justify-center rounded-[1.5rem] border border-[var(--neon-cyan)]/30 bg-[oklch(0.09_0.04_264/0.72)] p-3 shadow-[0_0_36px_color-mix(in_oklch,var(--neon-cyan)_18%,transparent)] sm:rounded-[2rem] sm:p-4">
+            <div className="flex h-full min-h-0 w-full items-center justify-center overflow-auto">
+              <FloorPlan />
+            </div>
           </div>
+          <RoomsProgress />
         </div>
 
         {/* Referencia de laboratorios importantes */}

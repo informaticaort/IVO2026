@@ -1,7 +1,19 @@
 "use client"
 
+import { useEffect, useState } from "react"
+import Image from "next/image"
+import Link from "next/link"
+
+import { DONE_KEY_PREFIX } from "@/lib/presence/types"
 import { LabConversation, type LabConversationConfig } from "./lab-conversation"
+import { LAB_COLORS } from "./floor-plan"
 import { HmpSequenceGame } from "./hmp-sequence-game"
+
+// Contraseña para entrar al laboratorio HMP.
+const HMP_ACCESS_PASSWORD = "HMPLABS"
+// Marca (por sesión) de que ya se ingresó la contraseña, para no volver a
+// pedirla al ir y volver dentro de la misma partida.
+const HMP_UNLOCK_KEY = "escape-room-hmp-unlocked"
 
 /* -------------------------------------------------------------------------
  * CONVERSACIÓN DEL ÁMBITO HMP — Sospechoso: VALEN (Hardware / Realidad Virtual)
@@ -82,7 +94,169 @@ const HMP_CONFIG: LabConversationConfig = {
   ],
 }
 
+/**
+ * Pantalla de acceso al HMP: la puerta cerrada (HMP_CERRADO.png) con un cartel
+ * que pide la contraseña. Solo HMPLABS abre. Enmarcada con el color del ámbito,
+ * igual que las entrevistas.
+ */
+function HmpLockScreen({ onUnlock }: { onUnlock: () => void }) {
+  const color = LAB_COLORS.HMP
+  const [value, setValue] = useState("")
+  const [error, setError] = useState(false)
+
+  function submit() {
+    if (value.trim().toUpperCase() === HMP_ACCESS_PASSWORD) {
+      onUnlock()
+    } else {
+      setError(true)
+    }
+  }
+
+  return (
+    <main className="relative flex h-screen w-screen flex-col overflow-hidden bg-background p-3 sm:p-4">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: "url(/images/cyber-bg.png)" }}
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_bottom,oklch(0.1_0.04_264/0.35)_0%,transparent_30%,oklch(0.1_0.04_264/0.85)_100%)]"
+      />
+
+      <Link
+        href="/plano"
+        className="absolute right-4 top-4 z-40 rounded-md border-2 border-[var(--neon-cyan)]/60 bg-[oklch(0.14_0.04_264/0.7)] px-4 py-2 font-pixel text-xs text-[var(--neon-cyan)] transition-colors hover:bg-[var(--neon-cyan)] hover:text-background"
+      >
+        Volver
+      </Link>
+
+      <div className="relative z-10 flex h-full w-full items-center justify-center">
+        <div
+          className="relative flex max-h-full rounded-[1.25rem] border-4 bg-[oklch(0.09_0.04_264/0.55)] p-3 sm:p-4"
+          style={{
+            borderColor: `color-mix(in oklch, ${color} 75%, transparent)`,
+            boxShadow: `0 0 35px color-mix(in oklch, ${color} 35%, transparent)`,
+          }}
+        >
+          <div className="relative">
+            <Image
+              src="/images/HMP_CERRADO.png"
+              alt="Entrada del laboratorio HMP, cerrada"
+              width={1672}
+              height={941}
+              priority
+              className="max-h-[92vh] w-auto rounded-[1rem] object-contain"
+            />
+
+            {/* Cartel de contraseña centrado sobre la escena */}
+            <div className="absolute inset-0 flex items-center justify-center p-4">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  submit()
+                }}
+                className="flex w-full max-w-sm flex-col items-center gap-4 rounded-xl border-4 bg-[oklch(0.08_0.04_264/0.92)] p-5 text-center backdrop-blur-sm"
+                style={{
+                  borderColor: `color-mix(in oklch, ${color} 75%, transparent)`,
+                  boxShadow: `0 0 30px color-mix(in oklch, ${color} 35%, transparent)`,
+                }}
+              >
+                <p
+                  className="font-pixel text-base uppercase tracking-[0.2em]"
+                  style={{ color }}
+                >
+                  Laboratorio HMP
+                </p>
+                <p className="font-mono text-sm text-white/80">
+                  Acceso restringido. Ingresá la contraseña para entrar.
+                </p>
+
+                <input
+                  autoFocus
+                  type="text"
+                  value={value}
+                  onChange={(e) => {
+                    setValue(e.target.value.toUpperCase())
+                    setError(false)
+                  }}
+                  placeholder="CONTRASEÑA"
+                  aria-label="Contraseña de acceso al laboratorio HMP"
+                  aria-invalid={error}
+                  autoComplete="off"
+                  className={`w-full rounded-md border-2 bg-black/60 px-3 py-2 text-center font-mono text-lg tracking-[0.3em] text-white outline-none transition-colors ${
+                    error
+                      ? "border-[var(--neon-red)]"
+                      : "border-white/40 focus:border-white"
+                  }`}
+                />
+                <p
+                  aria-live="polite"
+                  className={`font-mono text-xs text-[var(--neon-red)] ${
+                    error ? "visible" : "invisible"
+                  }`}
+                >
+                  Contraseña incorrecta.
+                </p>
+
+                <button
+                  type="submit"
+                  className="w-full rounded-md border-2 px-5 py-2 font-pixel text-xs transition-colors hover:text-background"
+                  style={{
+                    borderColor: `color-mix(in oklch, ${color} 70%, transparent)`,
+                    color,
+                    backgroundColor: "oklch(0.14 0.04 264 / 0.7)",
+                  }}
+                >
+                  Entrar
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  )
+}
+
 export function HmpConversation() {
+  // Gate de acceso: primero la puerta cerrada con contraseña. Si el HMP ya se
+  // resolvió, o ya se ingresó la contraseña en esta sesión, se entra directo.
+  const [unlocked, setUnlocked] = useState(false)
+  const [ready, setReady] = useState(false)
+
+  useEffect(() => {
+    try {
+      if (
+        localStorage.getItem(`${DONE_KEY_PREFIX}HMP`) ||
+        sessionStorage.getItem(HMP_UNLOCK_KEY)
+      ) {
+        setUnlocked(true)
+      }
+    } catch {
+      /* noop */
+    }
+    setReady(true)
+  }, [])
+
+  // Evita el parpadeo del cartel para quien ya tiene acceso.
+  if (!ready) return null
+
+  if (!unlocked) {
+    return (
+      <HmpLockScreen
+        onUnlock={() => {
+          try {
+            sessionStorage.setItem(HMP_UNLOCK_KEY, "1")
+          } catch {
+            /* noop */
+          }
+          setUnlocked(true)
+        }}
+      />
+    )
+  }
+
   return (
     <LabConversation
       config={HMP_CONFIG}

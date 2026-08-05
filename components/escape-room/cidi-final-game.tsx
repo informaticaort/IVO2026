@@ -20,34 +20,58 @@ import { LAB_COLORS } from "./floor-plan"
  * las veces que hagan falta.
  * ---------------------------------------------------------------------- */
 
-type LayerId = "interfaz" | "logica" | "datos" | "hardware"
+// Los 4 pendrives repartidos por el laboratorio (Pendrives.png). Cada color
+// es un ámbito y guarda su código. El jugador toca cada pendrive e ingresa la
+// contraseña que recuperó en ese ámbito; con los 4 se habilita elegir culpable.
+// El hotspot es la zona clickeable sobre la imagen (en % de 1672x941).
+type DriveId = "hmp" | "ami" | "ceo" | "lum"
 
-const LAYERS: { id: LayerId; label: string; hint: string; password: string }[] = [
+type Pendrive = {
+  id: DriveId
+  ambito: string
+  colorName: string
+  /** Color físico del pendrive, para el resaltado y el modal. */
+  accent: string
+  password: string
+  hotspot: { left: string; top: string; width: string; height: string }
+}
+
+const PENDRIVES: Pendrive[] = [
   {
-    id: "interfaz",
-    label: "Capa 1 · Interfaz",
-    hint: "Lo primero que ve el usuario: estética y experiencia.",
-    password: "UX",
-  },
-  {
-    id: "logica",
-    label: "Capa 2 · Lógica",
-    hint: "Las reglas y decisiones que mueven el sistema.",
-    password: "HACK3D",
-  },
-  {
-    id: "datos",
-    label: "Capa 3 · Datos",
-    hint: "La información guardada, la que quedó encriptada.",
-    password: "DECRYPT",
-  },
-  {
-    id: "hardware",
-    label: "Capa 4 · Hardware",
-    hint: "Lo que ejecuta físicamente todo el sistema.",
+    id: "hmp",
+    ambito: "HMP",
+    colorName: "violeta",
+    accent: "#a855f7",
     password: "SINCRO",
+    hotspot: { left: "11.2%", top: "76.8%", width: "5.2%", height: "4.4%" },
+  },
+  {
+    id: "ami",
+    ambito: "AMI",
+    colorName: "amarillo",
+    accent: "#f5c518",
+    password: "DECRYPT",
+    hotspot: { left: "22.5%", top: "60.8%", width: "4.6%", height: "3.8%" },
+  },
+  {
+    id: "ceo",
+    ambito: "CEO",
+    colorName: "blanco",
+    accent: "#e5e7eb",
+    password: "HACK3D",
+    hotspot: { left: "56.3%", top: "65.3%", width: "4.6%", height: "5.0%" },
+  },
+  {
+    id: "lum",
+    ambito: "LUM",
+    colorName: "rojo",
+    accent: "#ef4444",
+    password: "UX",
+    hotspot: { left: "93.4%", top: "71.0%", width: "4.6%", height: "3.6%" },
   },
 ]
+
+const PENDRIVES_IMG = "/images/Pendrives.png"
 
 type Suspect = {
   id: string
@@ -91,24 +115,31 @@ export function CidiFinalGame({
   onWin?: () => void
 }) {
   const [phase, setPhase] = useState<Phase>("puzzle")
-  const [answers, setAnswers] = useState<Record<LayerId, string>>({
-    interfaz: "",
-    logica: "",
-    datos: "",
-    hardware: "",
+  const [unlocked, setUnlocked] = useState<Record<DriveId, boolean>>({
+    hmp: false,
+    ami: false,
+    ceo: false,
+    lum: false,
   })
+  const [selectedId, setSelectedId] = useState<DriveId | null>(null)
+  const [codeInput, setCodeInput] = useState("")
+  const [codeError, setCodeError] = useState(false)
   const [completionLine, setCompletionLine] = useState(0)
   const [hoveredSuspectId, setHoveredSuspectId] = useState<string | null>(null)
   const [zoomedId, setZoomedId] = useState<string | null>(null)
   const [wrongMessage, setWrongMessage] = useState<string | null>(null)
 
-  const solved = LAYERS.filter(
-    (l) => answers[l.id].trim().toUpperCase() === l.password
-  ).length
+  const enteredCount = PENDRIVES.filter((p) => unlocked[p.id]).length
+  const selectedDrive = PENDRIVES.find((p) => p.id === selectedId) ?? null
 
+  // Con los 4 códigos ingresados, se espera unos segundos (para que se vea
+  // que quedaron completos) antes de pasar a la pantalla de carga.
   useEffect(() => {
-    if (solved === LAYERS.length && phase === "puzzle") setPhase("completing")
-  }, [solved, phase])
+    if (enteredCount === PENDRIVES.length && phase === "puzzle") {
+      const t = setTimeout(() => setPhase("completing"), 2500)
+      return () => clearTimeout(t)
+    }
+  }, [enteredCount, phase])
 
   useEffect(() => {
     if (phase !== "completing") return
@@ -121,8 +152,21 @@ export function CidiFinalGame({
     return () => timers.forEach(clearTimeout)
   }, [phase])
 
-  function handleLayerChange(id: LayerId, value: string) {
-    setAnswers((prev) => ({ ...prev, [id]: value.toUpperCase() }))
+  function openDrive(id: DriveId) {
+    if (unlocked[id]) return
+    setSelectedId(id)
+    setCodeInput("")
+    setCodeError(false)
+  }
+
+  function submitCode() {
+    if (!selectedDrive) return
+    if (codeInput.trim().toUpperCase() === selectedDrive.password) {
+      setUnlocked((prev) => ({ ...prev, [selectedDrive.id]: true }))
+      setSelectedId(null)
+    } else {
+      setCodeError(true)
+    }
   }
 
   function openZoom(id: string) {
@@ -341,64 +385,146 @@ export function CidiFinalGame({
           </div>
         </div>
       ) : (
-        /* ------------------------------ PUZZLE DE CAPAS ------------------------------ */
-        <div className="relative mx-auto flex min-h-full max-w-3xl flex-col justify-center gap-4 py-6 text-white">
-          <div className="rounded-xl border-4 border-[var(--neon-green)]/60 bg-[oklch(0.1_0.04_264/0.85)] px-4 py-3">
-            <p className="font-pixel text-sm uppercase tracking-wide text-[var(--neon-green)] sm:text-base">
-              Núcleo de la IA — Ensamblaje de fragmentos
+        /* ------------------------- PENDRIVES DEL LABORATORIO ------------------------- */
+        <div className="relative flex h-full w-full items-center justify-center text-white">
+          {/* Título e instrucciones flotando arriba, igual que la rueda de
+              sospechosos, para que el recuadro de la imagen quede centrado a
+              pantalla completa. */}
+          <div className="absolute inset-x-0 top-12 z-20 px-4 text-center sm:top-16 sm:px-28">
+            <p className="font-pixel text-lg uppercase tracking-widest text-[var(--neon-green)] sm:text-xl">
+              Recuperen los 4 pendrives
             </p>
-            <p className="mt-1 font-mono text-sm text-white/85 sm:text-base">
-              Ubiquen cada una de las 4 contraseñas recuperadas en la capa del
-              sistema que le corresponde por tema. El saboteador ordenó el
-              ataque como quien ordena código: de lo más visible a lo más
-              profundo.
+            <p className="mx-auto mt-2 max-w-xl rounded-md bg-black/60 px-3 py-1.5 font-mono text-sm text-white backdrop-blur-sm sm:text-base">
+              Cada pendrive guarda el código de un ámbito. Toquen cada uno e
+              ingresen la contraseña que recuperaron ahí.
             </p>
           </div>
 
-          <ul className="flex flex-col gap-2">
-            {LAYERS.map((layer) => {
-              const value = answers[layer.id]
-              const isCorrect = value !== "" && value === layer.password
-              const isWrong = value !== "" && !isCorrect
-              return (
-                <li
-                  key={layer.id}
-                  className="flex flex-col gap-2 rounded-lg border border-white/20 bg-black/40 px-4 py-3 sm:flex-row sm:items-center sm:gap-4"
-                >
-                  <div className="sm:w-48 sm:shrink-0">
-                    <p className="font-pixel text-[0.78rem] uppercase tracking-wide text-white/90">
-                      {layer.label}
-                    </p>
-                    <p className="font-mono text-[0.82rem] text-white/60">{layer.hint}</p>
-                  </div>
-                  <input
-                    type="text"
-                    value={value}
-                    onChange={(e) => handleLayerChange(layer.id, e.target.value)}
-                    aria-label={`Contraseña para ${layer.label}`}
-                    className={`flex-1 rounded-md border-2 bg-black/60 px-3 py-2 text-center font-mono text-lg tracking-[0.3em] outline-none transition-colors ${
-                      isCorrect
-                        ? "border-[var(--neon-green)] text-[var(--neon-green)]"
-                        : isWrong
-                          ? "border-[var(--neon-red)]/70 text-[var(--neon-red)]"
-                          : "border-white/40 text-white focus:border-white"
-                    }`}
-                  />
-                  <span
-                    className={`hidden w-6 text-center font-pixel text-lg sm:block ${
-                      isCorrect ? "text-[var(--neon-green)]" : "text-white/20"
-                    }`}
-                  >
-                    {isCorrect ? "✔" : "?"}
-                  </span>
-                </li>
-              )
-            })}
-          </ul>
+          {/* Mismo marco que la rueda de sospechosos */}
+          <div className="relative flex max-h-full rounded-[1.25rem] border-4 border-blue-500 p-3 sm:p-4">
+            <div className="relative">
+              <Image
+                src={PENDRIVES_IMG}
+                alt="Laboratorio con cuatro pendrives de distintos colores"
+                width={1672}
+                height={941}
+                priority
+                className="max-h-[92vh] w-auto rounded-[1rem] object-contain"
+              />
 
-          <p className="text-center font-pixel text-xs text-white/60">
-            {solved} / {LAYERS.length} capas verificadas
-          </p>
+              {/* Hotspots totalmente invisibles sobre cada pendrive de la
+                  imagen: no se marcan de ninguna forma; solo cambia el cursor
+                  para indicar que la zona es clickeable. */}
+              {PENDRIVES.map((pd) => {
+                const done = unlocked[pd.id]
+                return (
+                  <button
+                    key={pd.id}
+                    type="button"
+                    onClick={() => openDrive(pd.id)}
+                    disabled={done}
+                    aria-label={
+                      done
+                        ? `Pendrive ${pd.colorName} (${pd.ambito}): código ingresado`
+                        : `Ingresar el código del pendrive ${pd.colorName} (${pd.ambito})`
+                    }
+                    className={`absolute outline-none ${
+                      done ? "cursor-default" : "cursor-pointer"
+                    }`}
+                    style={pd.hotspot}
+                  />
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Progreso */}
+          <div className="absolute inset-x-0 bottom-4 z-20 flex justify-center px-4">
+            <p className="rounded-md bg-black/70 px-4 py-1.5 font-pixel text-xs text-white">
+              {enteredCount} / {PENDRIVES.length} códigos ingresados
+            </p>
+          </div>
+
+          {/* Modal para ingresar el código del pendrive elegido */}
+          {selectedDrive ? (
+            <div
+              className="fixed inset-0 z-[60] flex items-center justify-center bg-black/85 p-4"
+              onClick={() => setSelectedId(null)}
+            >
+              <form
+                role="dialog"
+                aria-label={`Código del pendrive ${selectedDrive.colorName}`}
+                onClick={(e) => e.stopPropagation()}
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  submitCode()
+                }}
+                className="flex w-full max-w-sm flex-col items-center gap-4 rounded-xl border-4 bg-[oklch(0.09_0.04_264/0.96)] p-5 text-center shadow-[0_0_45px_rgba(0,0,0,0.6)]"
+                style={{ borderColor: selectedDrive.accent }}
+              >
+                <div className="flex items-center gap-2">
+                  <span
+                    aria-hidden
+                    className="size-4 rounded-full border border-white/40"
+                    style={{ backgroundColor: selectedDrive.accent }}
+                  />
+                  <p
+                    className="font-pixel text-sm uppercase tracking-widest"
+                    style={{ color: selectedDrive.accent }}
+                  >
+                    Pendrive {selectedDrive.colorName}
+                  </p>
+                </div>
+                <p className="font-mono text-xs text-white/70">
+                  Ingresá el código del ámbito {selectedDrive.ambito}.
+                </p>
+
+                <input
+                  autoFocus
+                  type="text"
+                  value={codeInput}
+                  onChange={(e) => {
+                    setCodeInput(e.target.value.toUpperCase())
+                    setCodeError(false)
+                  }}
+                  placeholder="CÓDIGO"
+                  aria-label={`Código del ámbito ${selectedDrive.ambito}`}
+                  aria-invalid={codeError}
+                  autoComplete="off"
+                  className={`w-full rounded-md border-2 bg-black/60 px-3 py-2 text-center font-mono text-lg tracking-[0.3em] text-white outline-none transition-colors ${
+                    codeError
+                      ? "border-[var(--neon-red)]"
+                      : "border-white/40 focus:border-white"
+                  }`}
+                />
+                <p
+                  aria-live="polite"
+                  className={`font-mono text-xs text-[var(--neon-red)] ${
+                    codeError ? "visible" : "invisible"
+                  }`}
+                >
+                  Código incorrecto.
+                </p>
+
+                <div className="flex w-full gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedId(null)}
+                    className="flex-1 rounded-md border-2 border-white/40 px-4 py-2 font-pixel text-xs text-white/80 transition-colors hover:bg-white/10"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 rounded-md border-2 border-[var(--pd)] px-4 py-2 font-pixel text-xs text-[var(--pd)] transition-colors hover:bg-[var(--pd)] hover:text-black"
+                    style={{ ["--pd" as string]: selectedDrive.accent }}
+                  >
+                    Confirmar
+                  </button>
+                </div>
+              </form>
+            </div>
+          ) : null}
         </div>
       )}
     </div>

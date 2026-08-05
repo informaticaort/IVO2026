@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useRef, useState } from "react"
 import Image from "next/image"
-import Link from "next/link"
 
 import { LAB_COLORS } from "./floor-plan"
 
@@ -970,13 +969,11 @@ function VsCodeWindow({
 
 /**
  * Mensaje que tapa la pantalla al recuperar la IA, con el código del
- * fragmento. Sigue la estética del ámbito: marco neón con el color del CEO,
- * fondo oscuro translúcido y tipografía pixel, igual que las pantallas de
- * victoria del resto de los ámbitos.
+ * fragmento. Usa la misma estética que las pantallas de victoria del resto de
+ * los ámbitos (por ejemplo la card del AMI): marco y tipografía neón verde,
+ * fondo oscuro translúcido.
  */
 function FragmentUnlockedOverlay({ onClose }: { onClose: () => void }) {
-  const color = LAB_COLORS.CEO
-
   return (
     <div
       role="dialog"
@@ -984,30 +981,21 @@ function FragmentUnlockedOverlay({ onClose }: { onClose: () => void }) {
       aria-label="Fragmento recuperado"
       className="absolute inset-0 z-20 flex items-center justify-center overflow-hidden rounded-[1rem] bg-[oklch(0.06_0.03_264/0.92)] p-4 text-center"
     >
-      <div
-        className="flex w-full max-w-lg flex-col items-center gap-4 rounded-xl border-4 bg-[oklch(0.1_0.04_264/0.95)] px-5 py-6"
-        style={{
-          borderColor: `color-mix(in oklch, ${color} 75%, transparent)`,
-          boxShadow: `0 0 45px color-mix(in oklch, ${color} 40%, transparent)`,
-        }}
-      >
-        <p
-          className="font-pixel text-lg uppercase tracking-[0.15em] sm:text-2xl"
-          style={{ color }}
-        >
+      <div className="flex w-full max-w-lg flex-col items-center gap-5 rounded-xl border-4 border-[var(--neon-green)]/70 bg-[oklch(0.1_0.05_264/0.9)] px-6 py-7 shadow-[0_0_40px_color-mix(in_oklch,var(--neon-green)_40%,transparent)]">
+        <p className="font-pixel text-xl uppercase tracking-[0.15em] text-[var(--neon-green)] sm:text-2xl">
           IA recuperada
         </p>
 
-        <p className="font-mono text-sm leading-relaxed text-foreground/90 sm:text-base">
-          El sistema volvió a responder y liberó el fragmento que la IA tenía
-          retenido. El código es:
+        <p className="font-mono text-sm leading-relaxed text-foreground/95 sm:text-[1.05rem]">
+          El sistema volvió a responder y liberó el fragmento del ámbito CEO.
+          El código es:
         </p>
 
-        <p className="rounded-md bg-gradient-to-r from-blue-600 to-pink-500 px-6 py-2.5 font-mono text-3xl font-bold tracking-[0.3em] text-white sm:text-4xl">
+        <p className="rounded-md border-2 border-[var(--neon-green)]/60 bg-[oklch(0.14_0.05_264/0.7)] px-6 py-2.5 font-mono text-2xl font-bold tracking-[0.3em] text-[var(--neon-green)] sm:text-3xl">
           {FRAGMENT_CODE}
         </p>
 
-        <p className="font-mono text-sm text-muted-foreground">
+        <p className="font-mono text-xs text-muted-foreground sm:text-sm">
           Anotalo: lo van a necesitar para armar el núcleo de la IA.
         </p>
 
@@ -1015,12 +1003,7 @@ function FragmentUnlockedOverlay({ onClose }: { onClose: () => void }) {
           type="button"
           onClick={onClose}
           autoFocus
-          className="mt-1 cursor-pointer rounded-md border-2 px-5 py-2 font-pixel text-xs transition-colors hover:text-background"
-          style={{
-            borderColor: `color-mix(in oklch, ${color} 70%, transparent)`,
-            color,
-            backgroundColor: "oklch(0.14 0.04 264 / 0.7)",
-          }}
+          className="mt-1 cursor-pointer rounded-md border-2 border-[var(--neon-green)]/70 bg-[oklch(0.14_0.04_264/0.7)] px-5 py-2 font-pixel text-xs text-[var(--neon-green)] transition-colors hover:bg-[var(--neon-green)] hover:text-background"
         >
           Entendido
         </button>
@@ -1535,15 +1518,6 @@ export function CeoDesktopGame({
           </div>
         </div>
       </div>
-
-      {iaRecuperada ? (
-        <Link
-          href="/plano"
-          className="absolute bottom-6 left-1/2 z-[55] -translate-x-1/2 rounded-md border-2 border-[var(--neon-green)]/80 bg-black/80 px-4 py-2 text-center font-pixel text-xs text-[var(--neon-green)] shadow-[0_0_20px_color-mix(in_oklch,var(--neon-green)_50%,transparent)] transition-colors hover:bg-[var(--neon-green)] hover:text-background"
-        >
-          Fragmento recuperado · Volver al plano
-        </Link>
-      ) : null}
     </main>
   )
 }
