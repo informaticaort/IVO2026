@@ -19,8 +19,9 @@ const PASSWORD = "SINCRO"
 const PAPER = "#efe6cf"
 const PAPER_PANEL = "#e4d8ba"
 const INK = "#2a2118"
-// Verde de "acierto": resalta la casilla cuando la letra está en su posición.
-const GREEN = "#2f7d32"
+// Violeta de "acierto": resalta la casilla cuando la letra está en su posición.
+// Matchea el color del borde del recuadro de HMP (LAB_COLORS.HMP).
+const HMP_VIOLET = "oklch(0.62 0.25 300)"
 const TYPEWRITER = '"Courier New", Courier, monospace'
 
 // Textura de grano sutil (SVG inline) que se superpone al papel.
@@ -39,10 +40,12 @@ const WORDS = [
 
 const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("")
 
-// Cantidad de letras disponibles en cada dial: las de la palabra + señuelos.
-// Acotado a propósito: suficiente para confundir, pero no tantas como para que
-// descubrir la palabra sea difícil (no se usa todo el abecedario).
-const POOL_SIZE = 10
+// El juego tiene 3 niveles: en cada uno hay que formar una palabra distinta.
+// La dificultad sube con la cantidad de letras disponibles en cada dial (las de
+// la palabra + señuelos). Acotado a propósito: confunde, pero sigue siendo
+// descubrible (no se usa todo el abecedario).
+const POOL_SIZES = [7, 10, 13]
+const LEVEL_COUNT = POOL_SIZES.length
 
 /** Devuelve una copia barajada del array (Fisher-Yates). */
 function shuffled<T>(arr: T[]): T[] {
@@ -55,11 +58,11 @@ function shuffled<T>(arr: T[]): T[] {
 }
 
 /** Pool de letras compartido por los diales: TODAS las letras de la palabra +
- *  señuelos al azar hasta POOL_SIZE, ordenado alfabéticamente. */
-function buildPool(word: string): string[] {
+ *  señuelos al azar hasta `poolSize`, ordenado alfabéticamente. */
+function buildPool(word: string, poolSize: number): string[] {
   const letters = new Set(word.split(""))
   for (const c of shuffled(ALPHABET)) {
-    if (letters.size >= POOL_SIZE) break
+    if (letters.size >= poolSize) break
     letters.add(c)
   }
   return Array.from(letters).sort()
@@ -67,18 +70,24 @@ function buildPool(word: string): string[] {
 
 type Puzzle = { target: string; pool: string[]; reels: number[] }
 
-/** Elige una palabra al azar, arma su pool acotado y desfasa cada dial para que
- *  arranque en una letra distinta de la correcta (siempre hay algo que ajustar). */
-function makePuzzle(): Puzzle {
-  const target = WORDS[Math.floor(Math.random() * WORDS.length)]
-  const pool = buildPool(target)
-  const reels = target.split("").map((ch) => {
+/** Arma el pool acotado de la palabra y desfasa cada dial para que arranque en
+ *  una letra distinta de la correcta (siempre hay algo que ajustar). */
+function makePuzzle(word: string, poolSize: number): Puzzle {
+  const pool = buildPool(word, poolSize)
+  const reels = word.split("").map((ch) => {
     const correct = pool.indexOf(ch)
     let start = correct
     while (start === correct) start = Math.floor(Math.random() * pool.length)
     return start
   })
-  return { target, pool, reels }
+  return { target: word, pool, reels }
+}
+
+/** Genera los niveles: palabras distintas al azar, con pool creciente. */
+function makeLevels(): Puzzle[] {
+  return shuffled(WORDS)
+    .slice(0, LEVEL_COUNT)
+    .map((word, i) => makePuzzle(word, POOL_SIZES[i]))
 }
 
 export function HmpSequenceGame({
@@ -89,16 +98,20 @@ export function HmpSequenceGame({
   /** Se llama al formar la palabra correcta, para marcar el ámbito como resuelto. */
   onWin?: () => void
 }) {
-  // La palabra, su pool acotado de letras y la posición de cada dial se generan
-  // al azar al montar (el juego solo se monta en el cliente tras "Iniciar").
-  const [puzzle, setPuzzle] = useState<Puzzle>(makePuzzle)
+  // Los 3 niveles (palabra + pool + diales) se generan al azar al montar (el
+  // juego solo se monta en el cliente tras "Iniciar").
+  const [levels] = useState<Puzzle[]>(makeLevels)
+  const [level, setLevel] = useState(0)
+  const [puzzle, setPuzzle] = useState<Puzzle>(() => levels[0])
   const [error, setError] = useState(false)
   const [won, setWon] = useState(false)
   // Cartel de acceso previo: solo 2 integrantes van físicamente al HMP.
   const [entered, setEntered] = useState(false)
   // Aciertos por posición del ÚLTIMO intento (ENVIAR). Se limpia al mover un
-  // dial: el verde solo aparece como resultado del intento, no en todo momento.
+  // dial: el violeta solo aparece como resultado del intento, no en todo momento.
   const [feedback, setFeedback] = useState<boolean[] | null>(null)
+  // Aviso transitorio al pasar de nivel (se limpia al mover un dial).
+  const [levelCleared, setLevelCleared] = useState(false)
 
   const { target, pool, reels } = puzzle
   const current = reels.map((idx) => pool[idx]).join("")
@@ -107,6 +120,7 @@ export function HmpSequenceGame({
     if (won) return
     setError(false)
     setFeedback(null)
+    setLevelCleared(false)
     setPuzzle((p) => ({
       ...p,
       reels: p.reels.map((v, idx) =>
@@ -117,12 +131,22 @@ export function HmpSequenceGame({
 
   function submit() {
     if (won) return
-    if (current === target) {
-      setWon(true)
-      onWin?.()
-    } else {
+    if (current !== target) {
       setError(true)
       setFeedback(reels.map((idx, i) => pool[idx] === target[i]))
+      return
+    }
+    // Palabra correcta: pasa al siguiente nivel o gana si era el último.
+    if (level < LEVEL_COUNT - 1) {
+      const next = level + 1
+      setLevel(next)
+      setPuzzle(levels[next])
+      setError(false)
+      setFeedback(null)
+      setLevelCleared(true)
+    } else {
+      setWon(true)
+      onWin?.()
     }
   }
 
@@ -250,18 +274,43 @@ export function HmpSequenceGame({
           ) : (
             /* --------------------------- PANTALLA DEL JUEGO --------------------------- */
             <div className="mx-auto flex w-full max-w-4xl flex-col gap-4">
-              <div>
-                <p className="text-[1.05rem] font-bold uppercase tracking-[0.2em]">
-                  Módulo de realidad virtual // HMP
-                </p>
-                <p className="text-[0.95rem] opacity-70">
-                  VR-05 — reconfiguración de terminal léxica
-                </p>
+              <div className="flex flex-wrap items-end justify-between gap-2">
+                <div>
+                  <p className="text-[1.05rem] font-bold uppercase tracking-[0.2em]">
+                    Módulo de realidad virtual // HMP
+                  </p>
+                  <p className="text-[0.95rem] opacity-70">
+                    VR-05 — reconfiguración de terminal léxica
+                  </p>
+                </div>
+                {/* Indicador de nivel: texto + puntitos de progreso. */}
+                <div className="flex items-center gap-2">
+                  <span className="text-[0.82rem] font-bold uppercase tracking-[0.25em]">
+                    Nivel {level + 1} / {LEVEL_COUNT}
+                  </span>
+                  <span className="flex gap-1.5">
+                    {Array.from({ length: LEVEL_COUNT }).map((_, i) => {
+                      const done = i < level
+                      const current = i === level
+                      return (
+                        <span
+                          key={i}
+                          className="size-3 rounded-full border-2"
+                          style={{
+                            borderColor: done || current ? HMP_VIOLET : INK,
+                            backgroundColor: done ? HMP_VIOLET : "transparent",
+                          }}
+                        />
+                      )
+                    })}
+                  </span>
+                </div>
               </div>
 
               <p className="text-[1.05rem] leading-relaxed">
-                El módulo se reinició con las letras cambiadas. Ajustá cada casilla
-                con las flechas hasta formar la palabra correcta y presioná ENVIAR.
+                El módulo se reinició con las letras cambiadas. Reparalo en los{" "}
+                {LEVEL_COUNT} niveles: en cada uno, ajustá las casillas con las
+                flechas hasta formar la palabra correcta y presioná ENVIAR.
               </p>
 
               {/* Diagrama del módulo: marco con doble borde tipo máquina. */}
@@ -272,8 +321,8 @@ export function HmpSequenceGame({
                 >
                   {/* Fila de casillas: ▲ / letra / ▼.
                       Al presionar ENVIAR, las posiciones acertadas se resaltan
-                      en verde para ayudar a completar la palabra. El verde se
-                      limpia al mover cualquier dial. */}
+                      en violeta para ayudar a completar la palabra. Se limpia al
+                      mover cualquier dial. */}
                   <div className="flex flex-wrap justify-center gap-2 sm:gap-3">
                     {reels.map((idx, i) => {
                       const ok = feedback?.[i] ?? false
@@ -287,8 +336,8 @@ export function HmpSequenceGame({
                           <div
                             className="flex h-16 w-12 items-center justify-center rounded-sm border-2 text-[2rem] font-bold transition-colors sm:h-20 sm:w-14"
                             style={{
-                              borderColor: ok ? GREEN : INK,
-                              backgroundColor: ok ? GREEN : PAPER_PANEL,
+                              borderColor: ok ? HMP_VIOLET : INK,
+                              backgroundColor: ok ? HMP_VIOLET : PAPER_PANEL,
                               color: ok ? PAPER : INK,
                               boxShadow: "inset 0 3px 0 rgba(0,0,0,0.14)",
                             }}
@@ -329,6 +378,13 @@ export function HmpSequenceGame({
                 {error ? (
                   <p className="text-[0.9rem] font-bold uppercase tracking-widest">
                     Palabra incorrecta — seguí ajustando las casillas
+                  </p>
+                ) : levelCleared ? (
+                  <p
+                    className="text-[0.9rem] font-bold uppercase tracking-widest"
+                    style={{ color: HMP_VIOLET }}
+                  >
+                    ¡Nivel {level} completado! Sigue el nivel {level + 1} de {LEVEL_COUNT}
                   </p>
                 ) : null}
               </div>
