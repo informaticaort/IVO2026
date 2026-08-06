@@ -205,6 +205,10 @@ export function LabConversation({
   const doneKey = `${DONE_KEY_PREFIX}${acronym}`
   // Marca de que la entrevista ya se hizo (se entró al juego) al menos una vez.
   const seenKey = `escape-room-seen-${acronym}`
+  // Progreso de la charla (preguntas hechas + último diálogo) para RETOMAR la
+  // conversación donde se dejó al abandonar y volver a entrar al ámbito. Se
+  // guarda por sesión: al empezar una partida nueva arranca limpio.
+  const progressKey = `escape-room-progress-${acronym}`
 
   // Al entrar: si este ámbito ya está resuelto, no repetimos toda la entrevista.
   // Damos por hechas todas las preguntas (para que el registro quede completo),
@@ -221,11 +225,39 @@ export function LabConversation({
         setAsked(questions.map((q) => q.id))
         setStarted(true)
         setLockedIn(true)
+      } else {
+        // Retomar la charla donde se dejó: restauramos las preguntas ya hechas
+        // y el último diálogo, así no se repite todo desde el saludo.
+        const raw = sessionStorage.getItem(progressKey)
+        if (raw) {
+          const saved = JSON.parse(raw) as { asked?: string[]; speech?: string }
+          const validAsked = (saved.asked ?? []).filter((id) =>
+            questions.some((q) => q.id === id),
+          )
+          if (validAsked.length > 0) {
+            setAsked(validAsked)
+            if (saved.speech) setSpeech(saved.speech)
+          }
+        }
       }
     } catch {
       /* noop */
     }
-  }, [doneKey, seenKey, questions, completedSpeech, resumeGameOnReturn])
+  }, [doneKey, seenKey, progressKey, questions, completedSpeech, resumeGameOnReturn])
+
+  // Guardar el progreso de la charla mientras se entrevista (no en el juego ni
+  // cuando ya está resuelto). Al volver a entrar, el efecto de arriba lo retoma.
+  useEffect(() => {
+    if (started || completed) return
+    try {
+      sessionStorage.setItem(
+        progressKey,
+        JSON.stringify({ asked, speech }),
+      )
+    } catch {
+      /* noop */
+    }
+  }, [asked, speech, started, completed, progressKey])
 
   // Entrar a un juego: además de iniciarlo, bloquea la salida de la sala y deja
   // registrado que la entrevista ya se hizo (para poder reentrar directo).
