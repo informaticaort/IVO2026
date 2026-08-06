@@ -90,6 +90,23 @@ export type LabConversationConfig = {
 
 const LETTERS = ["A", "B", "C", "D", "E", "F", "G", "H"]
 
+// ── Modo TESTING ────────────────────────────────────────────────────────────
+// Si el equipo se registra con este nombre, se saltean TODAS las entrevistas
+// (y la puerta con contraseña del HMP) y se entra directo a los juegos, para
+// poder probarlos sin jugar toda la charla. Cambiá el nombre acá si hace falta.
+export const TESTING_TEAM_NAME = "LRDL"
+
+export function isTestingMode(): boolean {
+  try {
+    const raw = sessionStorage.getItem("escape-room-team")
+    if (!raw) return false
+    const team = JSON.parse(raw) as { name?: string }
+    return (team.name ?? "").trim().toUpperCase() === TESTING_TEAM_NAME
+  } catch {
+    return false
+  }
+}
+
 // ┌─────────────────────────────────────────────────────────────────────────┐
 // │ POSICIÓN DEL GLOBO DE DIÁLOGO — editá esto a mano para ajustar cada uno.  │
 // │  · top:  altura del globo (distancia desde arriba de la imagen). Podés    │
@@ -217,6 +234,13 @@ export function LabConversation({
   // entramos directo al juego (sin repetir las preguntas).
   useEffect(() => {
     try {
+      // Modo testing (equipo "LRDL"): directo al juego, sin entrevista y sin
+      // bloquear la salida (para poder ir y volver entre juegos libremente).
+      if (isTestingMode()) {
+        setAsked(questions.map((q) => q.id))
+        setStarted(true)
+        return
+      }
       if (localStorage.getItem(doneKey)) {
         setCompleted(true)
         setAsked(questions.map((q) => q.id))

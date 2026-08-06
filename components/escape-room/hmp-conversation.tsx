@@ -5,7 +5,11 @@ import Image from "next/image"
 import Link from "next/link"
 
 import { DONE_KEY_PREFIX } from "@/lib/presence/types"
-import { LabConversation, type LabConversationConfig } from "./lab-conversation"
+import {
+  LabConversation,
+  isTestingMode,
+  type LabConversationConfig,
+} from "./lab-conversation"
 import { LAB_COLORS } from "./floor-plan"
 import { HmpSequenceGame } from "./hmp-sequence-game"
 
@@ -228,6 +232,7 @@ export function HmpConversation() {
   useEffect(() => {
     try {
       if (
+        isTestingMode() ||
         localStorage.getItem(`${DONE_KEY_PREFIX}HMP`) ||
         sessionStorage.getItem(HMP_UNLOCK_KEY)
       ) {

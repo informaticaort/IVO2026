@@ -3,6 +3,15 @@
 import Image from "next/image"
 import { AlertTriangle, ArrowRight } from "lucide-react"
 import { CyberFrame } from "./cyber-frame"
+import { LAB_COLORS } from "./floor-plan"
+
+// Cada letra de "ADDE" con el color de un ámbito; "LABS" en verde (CIDI).
+const ADDE_LETTERS: { char: string; color: string }[] = [
+  { char: "A", color: LAB_COLORS.AMI }, // violeta
+  { char: "D", color: LAB_COLORS.HMP }, // amarillo
+  { char: "D", color: LAB_COLORS.CEO }, // blanco
+  { char: "E", color: LAB_COLORS.LUM }, // rojo
+]
 
 export function WelcomeScreen({ onStart }: { onStart: () => void }) {
   return (
@@ -42,17 +51,33 @@ export function WelcomeScreen({ onStart }: { onStart: () => void }) {
             ADDE LABS · REC
           </figcaption>
 
-          {/* Título de la crisis sobre la foto */}
+          {/* Título de bienvenida sobre la foto */}
           <div className="absolute inset-x-0 bottom-0 p-4 sm:p-6">
             <h1 className="glitch flicker font-pixel leading-[0.95] text-balance">
-              <span className="block text-2xl neon-green sm:text-4xl md:text-5xl">
-                IA
+              <span className="block text-xl neon-cyan sm:text-3xl md:text-4xl">
+                BIENVENIDOS A
               </span>
-              <span className="mt-2 block text-xl neon-cyan sm:text-3xl md:text-4xl">
-                FUERA DE
-              </span>
-              <span className="mt-2 block text-2xl neon-gradient sm:text-4xl md:text-5xl">
-                CONTROL
+              <span className="mt-2 block text-3xl sm:text-5xl md:text-6xl">
+                {ADDE_LETTERS.map((l, i) => (
+                  <span
+                    key={i}
+                    style={{
+                      color: l.color,
+                      textShadow: `0 0 18px color-mix(in oklch, ${l.color} 65%, transparent)`,
+                    }}
+                  >
+                    {l.char}
+                  </span>
+                ))}
+                <span className="mx-2" />
+                <span
+                  style={{
+                    color: LAB_COLORS.CIDI,
+                    textShadow: `0 0 18px color-mix(in oklch, ${LAB_COLORS.CIDI} 65%, transparent)`,
+                  }}
+                >
+                  LABS
+                </span>
               </span>
             </h1>
           </div>
