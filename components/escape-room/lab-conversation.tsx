@@ -6,6 +6,7 @@ import Link from "next/link"
 
 import { DONE_KEY_PREFIX } from "@/lib/presence/types"
 import { LAB_COLORS } from "./floor-plan"
+import { Typewriter } from "./typewriter"
 
 export type LabQuestion = {
   id: string
@@ -89,6 +90,27 @@ export type LabConversationConfig = {
 
 const LETTERS = ["A", "B", "C", "D", "E", "F", "G", "H"]
 
+// ┌─────────────────────────────────────────────────────────────────────────┐
+// │ POSICIÓN DEL GLOBO DE DIÁLOGO — editá esto a mano para ajustar cada uno.  │
+// │  · top:  altura del globo (distancia desde arriba de la imagen). Podés    │
+// │         usar % (ej. "6%", "12%") o píxeles (ej. "80px"). Más grande = más │
+// │         abajo.                                                            │
+// │  · side: de qué lado va el globo. "right" cuando el personaje está a la   │
+// │         izquierda; "left" cuando el personaje está a la derecha (Avril).  │
+// └─────────────────────────────────────────────────────────────────────────┘
+const BUBBLE_LAYOUT: Record<string, { top: string; side: "left" | "right" }> = {
+  AMI: { top: "20%", side: "right" },
+  HMP: { top: "20%", side: "right" },
+  CEO: { top: "20%", side: "right" },
+  LUM: { top: "20%", side: "right" },
+  CIDI: { top: "20%", side: "left" },
+}
+const DEFAULT_BUBBLE = { top: "6%", side: "right" as const }
+
+// Color de fondo del globo. El último número (/ 0.6) es la TRANSPARENCIA:
+// más bajo = se ve más el fondo detrás; más alto (hasta 1) = más opaco.
+const BUBBLE_BG = "oklch(0.1 0.04 264 / 0.6)"
+
 const DEFAULT_COMPLETED_SPEECH =
   "Este sector ya quedó resuelto. No tengo nada nuevo para contarte, " +
   "pero podés revisar el registro de la entrevista cuando quieras."
@@ -161,6 +183,10 @@ export function LabConversation({
   const image = imageForAcronym(acronym)
   const color = LAB_COLORS[acronym] ?? "var(--neon-cyan)"
 
+  // Posición del globo de este ámbito (editable en BUBBLE_LAYOUT, arriba).
+  const bubble = BUBBLE_LAYOUT[acronym] ?? DEFAULT_BUBBLE
+  const bubbleOnRight = bubble.side === "right"
+
   // Diálogo actual que "dice" el personaje de la imagen.
   const [speech, setSpeech] = useState<string>(greeting)
   const [asked, setAsked] = useState<string[]>([])
@@ -171,6 +197,10 @@ export function LabConversation({
   // `lockedIn` = el equipo ya entró a un juego. Desde ese momento no se puede
   // salir de la sala (se oculta "Volver") hasta completar el ámbito.
   const [lockedIn, setLockedIn] = useState(false)
+  // `speechDone` = el diálogo actual ya terminó de "escribirse" en pantalla.
+  // Las preguntas y el inicio del juego solo aparecen cuando está en true, así
+  // los chicos tienen que esperar a que el texto se revele (y leerlo).
+  const [speechDone, setSpeechDone] = useState(false)
 
   const doneKey = `${DONE_KEY_PREFIX}${acronym}`
   // Marca de que la entrevista ya se hizo (se entró al juego) al menos una vez.
@@ -219,22 +249,6 @@ export function LabConversation({
     setCompleted(true)
   }
 
-  // Retrato del jugador (equipo) que carga en la pantalla anterior.
-  const [player, setPlayer] = useState<{ name: string; avatar: string | null }>(
-    { name: "Detective", avatar: null }
-  )
-
-  useEffect(() => {
-    const saved = sessionStorage.getItem("escape-room-team")
-    if (!saved) return
-    try {
-      const p = JSON.parse(saved) as { name?: string; avatar?: string | null }
-      setPlayer({ name: p.name || "Detective", avatar: p.avatar ?? null })
-    } catch {
-      /* noop */
-    }
-  }, [])
-
   const allAsked = asked.length === questions.length
   const remaining = questions.length - asked.length
 
@@ -254,9 +268,17 @@ export function LabConversation({
 
   const currentSpeech = started ? closingSpeech : speech
 
+  // Cada vez que cambia el diálogo (saludo, respuesta, cierre) se vuelve a
+  // "escribir" desde cero: reseteamos el flag hasta que el Typewriter avise.
+  useEffect(() => {
+    setSpeechDone(false)
+  }, [currentSpeech])
+
   // Con hotspot: al terminar las preguntas se enciende la pantalla azul.
-  // Si el ámbito ya está resuelto, no se vuelve a ofrecer el juego.
-  const hotspotActive = allAsked && !!gameHotspot && !started && !completed
+  // Si el ámbito ya está resuelto, no se vuelve a ofrecer el juego. Solo tras
+  // leerse el diálogo completo (speechDone).
+  const hotspotActive =
+    allAsked && !!gameHotspot && !started && !completed && speechDone
 
   return (
     <main className="relative flex h-screen w-screen flex-col overflow-hidden bg-background p-3 sm:p-4">
@@ -463,44 +485,81 @@ export function LabConversation({
                 )}
               </button>
             ) : null}
-          </div>
 
-          {/* Overlay de diálogo + opciones, pegado al fondo de la imagen.
-              Compacto y semitransparente para tapar lo menos posible. */}
-          <div className="absolute inset-x-2 bottom-2 flex max-h-[60%] flex-col justify-end gap-2">
-            {/* Diálogo del personaje */}
-            <div className="flex items-start gap-2 rounded-xl border border-[var(--neon-cyan)]/35 bg-[oklch(0.08_0.04_264/0.72)] px-4 py-3 backdrop-blur-sm">
-              {/* Retrato del jugador */}
-              <div className="hidden shrink-0 sm:block">
-                <div className="size-12 overflow-hidden rounded-full border-2 border-[var(--neon-cyan)]/70 bg-[oklch(0.12_0.05_263)]">
-                  {player.avatar ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={player.avatar}
-                      alt={`Foto de ${player.name}`}
-                      className="size-full object-cover"
+            {/* Globo de diálogo del personaje, a su lado (estilo visual novel /
+                Corazón de Melón). Se ubica del lado libre del retrato y la
+                colita apunta hacia el personaje. El texto se escribe de a poco. */}
+            <div
+              className={`absolute z-20 ${
+                bubbleOnRight
+                  ? "left-[34%] right-[2.5%] sm:left-[36%]"
+                  : "left-[2.5%] right-[34%] sm:right-[36%]"
+              }`}
+              style={{ top: bubble.top }}
+            >
+              <div
+                className="relative rounded-2xl border-2 border-[var(--neon-cyan)]/55 px-4 py-3 shadow-[0_0_26px_color-mix(in_oklch,var(--neon-cyan)_28%,transparent)] backdrop-blur-sm"
+                style={{ backgroundColor: BUBBLE_BG }}
+              >
+                {/* Colita del globo: dos triángulos (contorno + relleno) que
+                    apuntan hacia el personaje. Si el globo está a la derecha,
+                    el personaje está a la izquierda y la colita apunta a la
+                    izquierda (y al revés). */}
+                {bubbleOnRight ? (
+                  <>
+                    <span
+                      aria-hidden="true"
+                      className="absolute -left-[15px] top-9 h-0 w-0 border-y-[11px] border-r-[15px] border-y-transparent"
+                      style={{
+                        borderRightColor:
+                          "color-mix(in oklch, var(--neon-cyan) 55%, transparent)",
+                      }}
                     />
-                  ) : (
-                    <div className="flex size-full items-center justify-center font-pixel text-lg neon-cyan">
-                      {player.name.charAt(0).toUpperCase()}
-                    </div>
-                  )}
-                </div>
-              </div>
-              <div className="min-w-0 flex-1">
+                    <span
+                      aria-hidden="true"
+                      className="absolute -left-[10px] top-[38px] h-0 w-0 border-y-[8px] border-r-[11px] border-y-transparent"
+                      style={{ borderRightColor: BUBBLE_BG }}
+                    />
+                  </>
+                ) : (
+                  <>
+                    <span
+                      aria-hidden="true"
+                      className="absolute -right-[15px] top-9 h-0 w-0 border-y-[11px] border-l-[15px] border-y-transparent"
+                      style={{
+                        borderLeftColor:
+                          "color-mix(in oklch, var(--neon-cyan) 55%, transparent)",
+                      }}
+                    />
+                    <span
+                      aria-hidden="true"
+                      className="absolute -right-[10px] top-[38px] h-0 w-0 border-y-[8px] border-l-[11px] border-y-transparent"
+                      style={{ borderLeftColor: BUBBLE_BG }}
+                    />
+                  </>
+                )}
+
                 <p className="mb-1 font-pixel text-[0.7rem] uppercase tracking-[0.25em] neon-cyan">
                   {speaker}
                 </p>
-                <p className="whitespace-pre-line font-mono text-[0.9rem] leading-snug text-foreground/95 sm:text-[0.95rem]">
-                  {currentSpeech}
-                </p>
+                <Typewriter
+                  key={currentSpeech}
+                  text={currentSpeech}
+                  onDone={() => setSpeechDone(true)}
+                  className="max-h-[52vh] overflow-y-auto font-mono text-[0.9rem] leading-snug text-foreground/95 sm:text-[0.95rem]"
+                />
               </div>
             </div>
+          </div>
 
-            {/* Opciones (aparecen debajo del diálogo), en 2 columnas.
+          {/* Opciones del jugador, pegadas al fondo de la imagen. */}
+          <div className="absolute inset-x-2 bottom-2 flex max-h-[60%] flex-col justify-end gap-2">
+            {/* Opciones (en 2 columnas).
                 Si el ámbito ya está resuelto, no se muestran: solo la frase
-                genérica y el registro (botón de logs). */}
-            {!started && !completed ? (
+                genérica y el registro (botón de logs). Aparecen recién cuando
+                el diálogo terminó de escribirse (speechDone), para forzar la
+                lectura. */}
+            {!started && !completed && speechDone ? (
               <div className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-[var(--neon-cyan)]/30 bg-[oklch(0.08_0.04_264/0.72)] px-3 py-2 backdrop-blur-sm">
                 <div className="flex items-center justify-between px-1 pb-2">
                   <p className="font-mono text-[0.72rem] text-muted-foreground">

@@ -10,7 +10,7 @@ const AMI_CONFIG: LabConversationConfig = {
   acronym: "AMI",
   speaker: "Mica",
   greeting:
-    "Hola, ¿cómo estás? Soy Mica. Preguntame lo que necesites, con tranquilidad… quiero que esto se resuelva bien.",
+    "¡Hola! ¿Cómo estás? Soy Mica.\nPreguntame lo que necesites, con tranquilidad… \n Quiero que esto se resuelva bien.",
   closingSpeech:
     "Bien. Esa computadora quedó bloqueada por la IA… resuelvan las ecuaciones con calma y conviertan cada número en su letra.",
   password: "DECRYPT",
@@ -33,42 +33,43 @@ const AMI_CONFIG: LabConversationConfig = {
       id: "q1",
       question: "Mica, ¿dónde estabas a las 03:00 AM?",
       answer:
-        "Estaba en casa. Me desperté cuando empezaron a llegar las alertas. " +
-        "Primero pensé que la IA estaba angustiada. Perdón, sé que suena raro, pero cuando una IA empieza a bloquear todo, tal vez no está atacando… tal vez está pidiendo ayuda. " +
-        "Después vi que había archivos encriptados y entendí que era más grave.",
+        "Estaba en casa.\nMe desperté cuando empezaron a llegar las alertas. " +
+        "\nPrimero pensé que la IA estaba angustiada. \n\nPerdón, sé que suena raro.\nPero cuando una IA empieza a bloquear todo. \nTal vez no está atacando… Tal vez está pidiendo ayuda. " +
+        "\n\nDespués vi que había archivos encriptados y entendí que era más grave.",
     },
     {
       id: "q2",
       question: "¿Por qué saludás y agradecés a la IA?",
       answer:
-        "Porque no cuesta nada ser amable. " +
-        "Cada vez que escribo un prompt, saludo y agradezco. “¡Hola! ¿Cómo estás? ¿Podrías ayudarme con esto? Muchas gracias.” " +
-        "No sé si la IA lo siente, pero las personas que trabajan conmigo sí; y en este equipo hace falta un poco más de cuidado.",
+        "Porque no cuesta nada ser amable.\n\n" +
+        "Cada vez que escribo un prompt, saludo y agradezco.\n“¡Hola! ¿Cómo estás?\n¿Podrías ayudarme con esto?\nMuchas gracias.”\n\n" +
+        "No sé si la IA lo siente,\npero las personas que trabajan conmigo sí;\ny en este equipo, hace falta un poco más de cuidado.",
     },
     {
       id: "q3",
       question: "¿Qué pasó en AMI?",
       answer:
-        "La IA encriptó información clave del sistema. Bloqueó archivos, ocultó códigos y fragmentó mensajes en varias capas. " +
-        "Para recuperar el fragmento de esta área, tienen que resolver el desafío de encriptación. Van a tener que observar símbolos, patrones, códigos y pistas para reconstruir la información original. " +
-        "Si lo logran, el pendrive va a recuperar el fragmento correspondiente.",
+        "La IA encriptó información clave del sistema.\nBloqueó archivos, ocultó códigos y fragmentó mensajes en varias capas.\n\n" +
+        "Para recuperar el fragmento de esta área, tienen que resolver el desafío de encriptación.\n\n" +
+        "Van a tener que observar símbolos, patrones, códigos y pistas para reconstruir la información original. " +
+        "\n\nSi lo logran, el pendrive va a recuperar el fragmento correspondiente.",
     },
     {
       id: "q4",
       question: "¿Había conflictos en el equipo?",
       answer:
-        "Sí. Intenté mediar varias veces. " +
-        "Avril estaba muy presionada porque la presentación se acercaba. Santi se frustraba cuando nadie revisaba los detalles. Valen estaba completamente sobrepasado. Y Belen… Belen se enojaba cuando alguien cuestionaba su código. " +
-        "No creo que nadie sea malo. Pero cuando las personas están cansadas y se sienten atacadas, pueden tomar decisiones horribles.",
+        "Sí. Intenté mediar varias veces.\n\n" +
+        "Avril estaba muy presionada porque la presentación se acercaba. Santi se frustraba cuando nadie revisaba los detalles. Valen estaba completamente sobrepasado. Y Belen… Belen se enojaba cuando alguien cuestionaba su código.\n\n" +
+        "No creo que nadie sea malo.\nPero cuando las personas están cansadas y se sienten atacadas, pueden tomar decisiones horribles.",
       highlights: ["Belen se enojaba cuando alguien cuestionaba su código"],
     },
     {
       id: "q5",
       question: "¿Viste algo raro antes del sabotaje?",
       answer:
-        "Vi a Belen muy alterada después de una reunión con Avril. Decía que si el sistema fallaba, ella no iba a cargar con la culpa de errores ajenos. " +
-        "También escuché que Avril no encontraba su credencial. Pensé que la había perdido como otras veces, porque siempre llega tarde, se apura y deja cosas por cualquier lado. " +
-        "Ahora me preocupa que alguien se haya aprovechado de eso.",
+        "Vi a Belen muy alterada después de una reunión con Avril.Decía que si el sistema fallaba, ella no iba a cargar con la culpa de errores ajenos. " +
+        "\n\nTambién escuché que Avril no encontraba su credencial.\nPensé que la había perdido como otras veces, porque siempre llega tarde, se apura y deja cosas por cualquier lado. " +
+        "\n\nAhora me preocupa que alguien se haya aprovechado de eso.",
       highlights: [
         "Belen muy alterada después de una reunión con Avril",
         "no iba a cargar con la culpa de errores ajenos",
@@ -79,10 +80,10 @@ const AMI_CONFIG: LabConversationConfig = {
       id: "q6",
       question: "¿Creés que la IA actuó sola?",
       answer:
-        "No del todo. " +
-        "Creo que la IA está reaccionando a una instrucción corrupta. Como si alguien le hubiera dado una orden maliciosa y ella estuviera intentando cumplirla sin entender el daño. " +
-        "Por eso tenemos que desinfectarla, no destruirla. " +
-        "Y también tenemos que descubrir quién le dio esa orden.",
+        "No del todo.\n\n" +
+        "Creo que la IA está reaccionando a una instrucción corrupta. Como si alguien le hubiera dado una orden maliciosa y ella estuviera intentando cumplirla sin entender el daño.\n\n" +
+        "Por eso tenemos que desinfectarla, no destruirla." +
+        "\nY también tenemos que descubrir quién le dio esa orden.",
       highlights: ["alguien le hubiera dado una orden maliciosa"],
     },
   ],
