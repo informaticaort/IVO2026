@@ -42,7 +42,7 @@ const PENDRIVES: Pendrive[] = [
     ambito: "HMP",
     colorName: "violeta",
     accent: "#a855f7",
-    password: "SINCRO",
+    password: "MOTHERBOARD",
     hotspot: { left: "11.2%", top: "76.8%", width: "5.2%", height: "4.4%" },
   },
   {

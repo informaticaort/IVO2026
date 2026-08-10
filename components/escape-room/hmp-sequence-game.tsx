@@ -9,11 +9,19 @@ import Link from "next/link"
  * una de las 5 casillas con las flechas ▲/▼ hasta formar la PALABRA REQUERIDA
  * (una palabra de informática de 5 letras, elegida al azar) y presionar ENVIAR.
  * No se muestra la lista de palabras posibles: solo la palabra objetivo.
+ * Al resolver los 3 niveles se obtiene la primera clave (FILESYSTEM). Después
+ * hay que combinar esa clave con FIREWALL (que se consigue físicamente, fuera
+ * de la app) para obtener la contraseña final MOTHERBOARD.
  * Estética: tinta negra sobre papel vintage (Courier), tamaños calcados del
  * juego del AMI para mantener consistencia dentro del recuadro.
  * ---------------------------------------------------------------------- */
 
-const PASSWORD = "SINCRO"
+// Clave que se descifra resolviendo los 3 niveles.
+const FIRST_KEY = "FILESYSTEM"
+// Clave que el equipo consigue físicamente (fuera de la app).
+const PHYS_KEY = "FIREWALL"
+// Contraseña final: se obtiene combinando FILESYSTEM + FIREWALL.
+const FINAL_KEY = "MOTHERBOARD"
 
 // Paleta "papel + tinta" para el look de máquina de escribir sobre papel viejo.
 const PAPER = "#efe6cf"
@@ -105,6 +113,15 @@ export function HmpSequenceGame({
   const [puzzle, setPuzzle] = useState<Puzzle>(() => levels[0])
   const [error, setError] = useState(false)
   const [won, setWon] = useState(false)
+  // `solved` = se resolvieron los 3 niveles (ya se tiene FILESYSTEM); falta
+  // combinarla con FIREWALL para obtener la contraseña final.
+  const [solved, setSolved] = useState(false)
+  const [key1, setKey1] = useState("")
+  const [key2, setKey2] = useState("")
+  const [combineError, setCombineError] = useState(false)
+  // `combineReady` = ya vieron FILESYSTEM y tocaron "Siguiente"; se muestran los
+  // 2 campos para combinar (sin decir qué claves van en cada uno).
+  const [combineReady, setCombineReady] = useState(false)
   // Cartel de acceso previo: solo 2 integrantes van físicamente al HMP.
   const [entered, setEntered] = useState(false)
   // Aciertos por posición del ÚLTIMO intento (ENVIAR). Se limpia al mover un
@@ -136,7 +153,8 @@ export function HmpSequenceGame({
       setFeedback(reels.map((idx, i) => pool[idx] === target[i]))
       return
     }
-    // Palabra correcta: pasa al siguiente nivel o gana si era el último.
+    // Palabra correcta: pasa al siguiente nivel o, si era el último, se pasa a
+    // la fase de combinación de claves (FILESYSTEM ya está resuelta).
     if (level < LEVEL_COUNT - 1) {
       const next = level + 1
       setLevel(next)
@@ -145,8 +163,23 @@ export function HmpSequenceGame({
       setFeedback(null)
       setLevelCleared(true)
     } else {
+      setSolved(true)
+    }
+  }
+
+  // Combinar las 2 claves (FILESYSTEM + FIREWALL, en cualquier orden) para
+  // obtener la contraseña final MOTHERBOARD.
+  function combine(e: React.FormEvent) {
+    e.preventDefault()
+    const a = key1.trim().toUpperCase()
+    const b = key2.trim().toUpperCase()
+    const ok =
+      (a === FIRST_KEY && b === PHYS_KEY) || (a === PHYS_KEY && b === FIRST_KEY)
+    if (ok) {
       setWon(true)
       onWin?.()
+    } else {
+      setCombineError(true)
     }
   }
 
@@ -194,20 +227,20 @@ export function HmpSequenceGame({
               style={{ borderColor: INK }}
             >
               <p className="text-[2rem] font-bold uppercase tracking-[0.15em]">
-                Módulo sincronizado
+                Contraseña final obtenida
               </p>
               <p className="text-[1.05rem] leading-relaxed">
-                El módulo de realidad virtual volvió a coincidir con las terminales.
-                El pendrive recuperó el fragmento del ámbito HMP.
+                Combinaste <strong>FILESYSTEM</strong> con <strong>FIREWALL</strong>.
+                El pendrive del HMP recuperó su fragmento con la contraseña final.
               </p>
               <div
                 className="rounded-sm border-2 px-6 py-3"
                 style={{ borderColor: INK, backgroundColor: PAPER_PANEL }}
               >
                 <p className="text-[0.7rem] uppercase tracking-[0.35em] opacity-70">
-                  Contraseña
+                  Contraseña final
                 </p>
-                <p className="text-3xl font-bold tracking-[0.35em]">{PASSWORD}</p>
+                <p className="text-3xl font-bold tracking-[0.15em]">{FINAL_KEY}</p>
               </div>
               <Link
                 href="/plano"
@@ -224,6 +257,110 @@ export function HmpSequenceGame({
               >
                 Volver al plano
               </Link>
+            </div>
+          ) : solved ? (
+            /* ----------------------- COMBINACIÓN DE CLAVES ----------------------- */
+            <div
+              className="mx-auto flex w-full max-w-2xl flex-col items-center gap-5 rounded-sm border-4 p-8 text-center"
+              style={{ borderColor: INK }}
+            >
+              {!combineReady ? (
+                /* Paso 1: se revela solo la primera clave (FILESYSTEM). */
+                <>
+                  <p className="text-[2rem] font-bold uppercase tracking-[0.15em]">
+                    Módulo sincronizado
+                  </p>
+                  <p className="text-[1.05rem] leading-relaxed">
+                    Descifraste la primera clave del módulo. Anotala.
+                  </p>
+                  <div
+                    className="rounded-sm border-2 px-6 py-3"
+                    style={{ borderColor: INK, backgroundColor: PAPER_PANEL }}
+                  >
+                    <p className="text-[0.7rem] uppercase tracking-[0.35em] opacity-70">
+                      Clave descifrada
+                    </p>
+                    <p className="text-3xl font-bold tracking-[0.2em]">{FIRST_KEY}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setCombineReady(true)}
+                    className="rounded-sm border-2 px-8 py-2.5 text-[1.05rem] font-bold uppercase tracking-[0.3em] transition-colors"
+                    style={{ borderColor: INK, color: INK }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = INK
+                      e.currentTarget.style.color = PAPER
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = "transparent"
+                      e.currentTarget.style.color = INK
+                    }}
+                  >
+                    Siguiente
+                  </button>
+                </>
+              ) : (
+                /* Paso 2: se combinan las 2 claves. No se dice cuáles son. */
+                <>
+                  <p className="text-[2rem] font-bold uppercase tracking-[0.15em]">
+                    Combinar claves
+                  </p>
+                  <p className="max-w-md text-[1.05rem] leading-relaxed">
+                    Ingresá las <strong>2 claves</strong> para combinarlas y obtener
+                    la contraseña final.
+                  </p>
+
+                  <form onSubmit={combine} className="flex w-full max-w-sm flex-col gap-3">
+                    <input
+                      type="text"
+                      value={key1}
+                      placeholder="Clave 1"
+                      aria-label="Clave 1"
+                      onChange={(e) => {
+                        setKey1(e.target.value.toUpperCase())
+                        setCombineError(false)
+                      }}
+                      className="rounded-sm border-2 px-3 py-2 text-center text-[1.15rem] font-bold uppercase tracking-[0.15em] outline-none"
+                      style={{ borderColor: INK, backgroundColor: PAPER_PANEL, color: INK }}
+                    />
+                    <input
+                      type="text"
+                      value={key2}
+                      placeholder="Clave 2"
+                      aria-label="Clave 2"
+                      onChange={(e) => {
+                        setKey2(e.target.value.toUpperCase())
+                        setCombineError(false)
+                      }}
+                      className="rounded-sm border-2 px-3 py-2 text-center text-[1.15rem] font-bold uppercase tracking-[0.15em] outline-none"
+                      style={{ borderColor: INK, backgroundColor: PAPER_PANEL, color: INK }}
+                    />
+                    <button
+                      type="submit"
+                      className="rounded-sm border-2 px-8 py-2.5 text-[1.05rem] font-bold uppercase tracking-[0.3em] transition-colors"
+                      style={{ borderColor: INK, color: INK }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = INK
+                        e.currentTarget.style.color = PAPER
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = "transparent"
+                        e.currentTarget.style.color = INK
+                      }}
+                    >
+                      Combinar
+                    </button>
+                    {combineError ? (
+                      <p
+                        className="text-[0.9rem] font-bold uppercase tracking-widest"
+                        style={{ color: "#9b2c2c" }}
+                      >
+                        Las claves no coinciden — reintentá
+                      </p>
+                    ) : null}
+                  </form>
+                </>
+              )}
             </div>
           ) : !entered ? (
             /* --------------------------- CARTEL DE ACCESO --------------------------- */
