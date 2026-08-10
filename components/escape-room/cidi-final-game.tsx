@@ -93,6 +93,9 @@ const SUSPECTS: Suspect[] = [
 const CULPRIT_ID = "belen"
 
 const LINEUP_BG = "/images/FondoCulpablePixelArt.png"
+// Arte de la pantalla final de victoria (se genera aparte; si falta, degrada al
+// fondo oscuro del contenedor).
+const WON_BG = "/images/VictoriaPixelArt.png"
 
 const COMPLETION_LINES = [
   { text: "Validando estructura del sistema...", bar: 6 },
@@ -214,18 +217,35 @@ export function CidiFinalGame({
 
       {phase === "won" ? (
         /* ------------------------- PANTALLA DE VICTORIA ------------------------- */
-        <div className="flex min-h-full items-center justify-center">
-          <div className="flex w-full max-w-xl flex-col items-center gap-5 rounded-xl border-4 border-[var(--neon-green)]/70 bg-[oklch(0.1_0.05_264/0.9)] p-8 text-center shadow-[0_0_40px_color-mix(in_oklch,var(--neon-green)_40%,transparent)]">
-            <p className="font-pixel text-2xl text-[var(--neon-green)]">CASO CERRADO</p>
-            <p className="font-mono text-sm leading-relaxed text-foreground/95">
-              El código corrupto estaba organizado con una prolijidad casi arrogante,
-              como si su autora quisiera dejar en claro que era más inteligente que
-              todo el equipo. Belen no pudo resistirse a firmar su propio sabotaje.
-              La IA quedó desinfectada y el CIDI, asegurado.
+        <div className="relative flex min-h-full items-center justify-center overflow-hidden">
+          {/* Arte de fondo a pantalla completa (degrada al fondo oscuro si falta). */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 bg-cover bg-center"
+            style={{ backgroundImage: `url(${WON_BG})` }}
+          />
+          {/* Oscurecido para que el texto se lea bien encima del arte. */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 bg-[oklch(0.05_0.03_264/0.55)]"
+          />
+
+          <div className="relative z-10 flex w-full max-w-2xl flex-col items-center gap-5 px-6 py-10 text-center">
+            <p className="flicker font-pixel text-4xl uppercase tracking-widest neon-green sm:text-6xl">
+              ¡Ganaste!
+            </p>
+            <p className="font-pixel text-lg uppercase tracking-[0.35em] text-[var(--neon-cyan)] sm:text-2xl">
+              Felicidades
+            </p>
+            <p className="max-w-xl rounded-lg border border-[var(--neon-green)]/40 bg-[oklch(0.08_0.04_264/0.75)] px-5 py-4 font-mono text-sm leading-relaxed text-foreground/95 backdrop-blur-sm sm:text-base">
+              Desenmascararon al saboteador: Belen firmó su propio ataque con esa
+              prolijidad arrogante que la delató. Con los 4 fragmentos recuperados,
+              la IA quedó desinfectada y el núcleo del CIDI, asegurado. ADDE Labs
+              vuelve a estar bajo control. Gran trabajo, equipo.
             </p>
             <Link
               href="/plano"
-              className="rounded-md border-2 border-[var(--neon-green)]/70 bg-[oklch(0.14_0.04_264/0.7)] px-5 py-2 font-pixel text-xs text-[var(--neon-green)] transition-colors hover:bg-[var(--neon-green)] hover:text-background"
+              className="rounded-md border-2 border-[var(--neon-green)]/70 bg-[oklch(0.14_0.04_264/0.7)] px-6 py-2.5 font-pixel text-xs text-[var(--neon-green)] transition-colors hover:bg-[var(--neon-green)] hover:text-background"
             >
               Volver al plano
             </Link>
