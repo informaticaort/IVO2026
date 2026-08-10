@@ -275,16 +275,17 @@
   animation: glitch 5s infinite;
 }
 
-/* Borde neón parpadeante para el botón de "IA EN CONTROL" */
+/* Borde neón parpadeante para el botón de "IA EN CONTROL" (y, con
+   --pulse-color, cualquier otro control que necesite llamar la atención). */
 @keyframes pulse-border {
   0%,
   100% {
-    box-shadow: 0 0 8px color-mix(in oklch, var(--neon-red) 55%, transparent),
-      inset 0 0 8px color-mix(in oklch, var(--neon-red) 30%, transparent);
+    box-shadow: 0 0 8px color-mix(in oklch, var(--pulse-color, var(--neon-red)) 55%, transparent),
+      inset 0 0 8px color-mix(in oklch, var(--pulse-color, var(--neon-red)) 30%, transparent);
   }
   50% {
-    box-shadow: 0 0 20px color-mix(in oklch, var(--neon-red) 80%, transparent),
-      inset 0 0 12px color-mix(in oklch, var(--neon-red) 45%, transparent);
+    box-shadow: 0 0 20px color-mix(in oklch, var(--pulse-color, var(--neon-red)) 80%, transparent),
+      inset 0 0 12px color-mix(in oklch, var(--pulse-color, var(--neon-red)) 45%, transparent);
   }
 }
 .pulse-border {

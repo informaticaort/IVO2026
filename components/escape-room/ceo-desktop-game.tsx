@@ -4,6 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import Image from "next/image"
 
 import { LAB_COLORS } from "./floor-plan"
+import type { TeamData } from "./team-setup-screen"
+import { Typewriter } from "./typewriter"
 
 /* -------------------------------------------------------------------------
  * JUEGO DEL ÁMBITO CEO — Escritorio con archivo borrado
@@ -632,7 +634,9 @@ function RecycleBinWindow({
 
         {/* Restaurar: superpuesta sobre el botón real de la barra de
             herramientas. Solo se resalta cuando hay algo seleccionado, igual
-            que un botón deshabilitado de la barra en Windows. */}
+            que un botón deshabilitado de la barra en Windows, y además
+            parpadea (pulse-border, mismo efecto que "IA EN CONTROL") para
+            llamar la atención sobre qué tocar después de seleccionar. */}
         <button
           type="button"
           onClick={() => {
@@ -642,10 +646,16 @@ function RecycleBinWindow({
           aria-label="Restaurar el elemento seleccionado"
           className={`absolute rounded-sm outline-none transition-colors ${
             fileSelected
-              ? "cursor-pointer hover:bg-[#cce8ff]/70 hover:shadow-[inset_0_0_0_1px_#99d1ff] focus-visible:bg-[#cce8ff]/70 focus-visible:shadow-[inset_0_0_0_1px_#99d1ff]"
+              ? "pulse-border cursor-pointer hover:bg-[#cce8ff]/70 hover:shadow-[inset_0_0_0_1px_#99d1ff] focus-visible:bg-[#cce8ff]/70 focus-visible:shadow-[inset_0_0_0_1px_#99d1ff]"
               : "cursor-not-allowed"
           }`}
-          style={{ left: "78.05%", top: "18.06%", width: "10.77%", height: "4.78%" }}
+          style={{
+            left: "78.05%",
+            top: "18.06%",
+            width: "10.77%",
+            height: "4.78%",
+            ...(fileSelected ? { "--pulse-color": "#59a9f5" } as React.CSSProperties : {}),
+          }}
         />
       </div>
     </div>
@@ -1228,52 +1238,71 @@ function getThought(s: ThoughtState): Thought | null {
   }
 }
 
-/** Globo de pensamiento: burbuja con la "colita" de circulitos, estilo historieta. */
+/** Lee los datos del equipo cargados en TeamSetupScreen (mismo storage que usa
+ *  LabConversation para identificar al equipo durante la partida). */
+function readTeam(): TeamData | null {
+  try {
+    const raw = sessionStorage.getItem("escape-room-team")
+    return raw ? (JSON.parse(raw) as TeamData) : null
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Panel de pensamiento: mismo formato de panel lateral que RoomsProgress (el
+ * panel de "salas completadas" del plano) — un aside angosto al costado de la
+ * escena, no una burbuja flotando encima de la pantalla de la compu. En vez de
+ * un genérico "Pensando…", encabeza con la foto y el nombre del equipo (así
+ * se lee como SU propio pensamiento), y el texto se escribe de a poco con el
+ * mismo efecto máquina de escribir que las entrevistas.
+ */
 function ThoughtBubble({
   text,
+  team,
   onDismiss,
 }: {
   text: string
+  team: TeamData | null
   onDismiss: () => void
 }) {
-  const color = LAB_COLORS.CEO
-
   return (
-    <div className="pointer-events-none absolute bottom-5 left-1/2 z-[56] w-[min(94%,44rem)] -translate-x-1/2">
-      <div
-        className="pointer-events-auto relative rounded-2xl border-2 bg-[oklch(0.09_0.04_264/0.94)] px-4 py-3 pr-10 backdrop-blur-sm"
-        style={{
-          borderColor: `color-mix(in oklch, ${color} 65%, transparent)`,
-          boxShadow: `0 0 25px color-mix(in oklch, ${color} 30%, transparent)`,
-        }}
-      >
-        <p className="font-mono text-sm leading-relaxed text-foreground/90 sm:text-base">
-          {text}
+    <aside className="pointer-events-auto relative w-full shrink-0 rounded-[1.5rem] border border-[var(--neon-cyan)]/30 bg-[oklch(0.09_0.04_264/0.72)] p-4 pr-9 shadow-[0_0_36px_color-mix(in_oklch,var(--neon-cyan)_18%,transparent)] backdrop-blur-sm lg:w-72">
+      <div className="flex items-center gap-2">
+        <div className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[var(--neon-cyan)]/50 bg-[oklch(0.18_0.045_264/0.6)]">
+          {team?.avatar ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={team.avatar}
+              alt=""
+              className="size-full object-cover"
+            />
+          ) : (
+            <span className="font-pixel text-[0.6rem] text-[var(--neon-cyan)]">
+              {(team?.name ?? "?").charAt(0).toUpperCase()}
+            </span>
+          )}
+        </div>
+        <p className="min-w-0 truncate font-pixel text-[0.65rem] uppercase tracking-[0.15em] text-muted-foreground">
+          {team?.name || "Pensando…"}
         </p>
-
-        <button
-          type="button"
-          onClick={onDismiss}
-          aria-label="Ocultar este pensamiento"
-          className="absolute right-2 top-2 cursor-pointer rounded px-1.5 py-0.5 font-mono text-sm text-foreground/50 transition-colors hover:text-foreground focus-visible:text-foreground focus-visible:outline-none"
-        >
-          ✕
-        </button>
-
-        {/* Colita del globo: dos circulitos, para que se lea como pensamiento
-            y no como diálogo. */}
-        <span
-          aria-hidden="true"
-          className="absolute -bottom-2.5 left-8 size-3 rounded-full border-2 bg-[oklch(0.09_0.04_264/0.94)]"
-          style={{ borderColor: `color-mix(in oklch, ${color} 65%, transparent)` }}
-        />
-        <span
-          aria-hidden="true"
-          className="absolute -bottom-5 left-5 size-1.5 rounded-full border-2 bg-[oklch(0.09_0.04_264/0.94)]"
-          style={{ borderColor: `color-mix(in oklch, ${color} 65%, transparent)` }}
-        />
       </div>
-    </div>
+
+      <Typewriter
+        key={text}
+        text={text}
+        className="mt-2 font-mono text-sm leading-relaxed text-foreground/90"
+      />
+
+      <button
+        type="button"
+        onClick={onDismiss}
+        aria-label="Ocultar este pensamiento"
+        className="absolute right-2 top-2 cursor-pointer rounded px-1.5 py-0.5 font-mono text-sm text-foreground/50 transition-colors hover:text-foreground focus-visible:text-foreground focus-visible:outline-none"
+      >
+        ✕
+      </button>
+    </aside>
   )
 }
 
@@ -1303,6 +1332,12 @@ export function CeoDesktopGame({
   // Lo que ya se averiguó, en orden libre: los pensamientos se apoyan en esto
   // para no dar por sabido algo que todavía no se leyó.
   const [known, setKnown] = useState<Discovery[]>([])
+  // Equipo registrado (nombre + foto), para encabezar el panel de pensamiento
+  // con quién está pensando en vez de un genérico "Pensando…".
+  const [team, setTeam] = useState<TeamData | null>(null)
+  useEffect(() => {
+    setTeam(readTeam())
+  }, [])
 
   const color = LAB_COLORS.CEO
 
@@ -1372,7 +1407,10 @@ export function CeoDesktopGame({
         className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_bottom,oklch(0.1_0.04_264/0.35)_0%,transparent_30%,oklch(0.1_0.04_264/0.85)_100%)]"
       />
 
-      {onExit ? (
+      {/* Salir: solo disponible una vez recuperado el fragmento. Mientras se
+          juega no se puede salir, porque este juego no guarda su progreso
+          entre entradas (se reinicia de cero al volver a abrirlo). */}
+      {onExit && iaRecuperada ? (
         <button
           type="button"
           onClick={onExit}
@@ -1385,14 +1423,14 @@ export function CeoDesktopGame({
       {/* z-[55]: por encima de las líneas de escaneo (z-50), así las
           ventanas de la compu se leen nítidas; el resto de la escena
           (fondo cyber, botón Salir) sigue teniendo el efecto CRT. */}
-      <div className="pointer-events-none relative z-[55] flex h-full w-full items-center justify-center">
+      <div className="pointer-events-none relative z-[55] flex h-full w-full flex-col items-center justify-center gap-3 overflow-auto lg:flex-row lg:gap-6">
         {/* Escenario enmarcado, mismo marco (borde, tamaño y encuadre) que el
             retrato de las entrevistas y que la rueda de reconocimiento del
             CIDI, para mantener consistencia visual entre ámbitos. El div
             interno se ajusta exactamente a la imagen, así los hotspots de los
             íconos —definidos en % de la imagen— calzan siempre. */}
         <div
-          className="pointer-events-auto relative flex max-h-full rounded-[1.25rem] border-4 bg-[oklch(0.09_0.04_264/0.55)] p-3 sm:p-4"
+          className="pointer-events-auto relative flex max-h-full shrink-0 rounded-[1.25rem] border-4 bg-[oklch(0.09_0.04_264/0.55)] p-3 sm:p-4"
           style={{
             borderColor: `color-mix(in oklch, ${color} 75%, transparent)`,
             boxShadow: `0 0 35px color-mix(in oklch, ${color} 35%, transparent)`,
@@ -1405,7 +1443,7 @@ export function CeoDesktopGame({
               width={1672}
               height={941}
               priority
-              className="max-h-[92vh] w-auto select-none rounded-[1rem] object-contain"
+              className="max-h-[60vh] w-auto select-none rounded-[1rem] object-contain sm:max-h-[70vh] lg:max-h-[92vh]"
             />
 
             {!openWindow ? (
@@ -1504,19 +1542,21 @@ export function CeoDesktopGame({
                 onClose={closeWindow}
               />
             ) : null}
-
-            {/* Pensamiento de quien investiga: va anclado abajo de la pantalla,
-                así comenta siempre lo que se está viendo. */}
-            {thought && !thoughtsDismissed.includes(thought.id) ? (
-              <ThoughtBubble
-                text={thought.text}
-                onDismiss={() =>
-                  setThoughtsDismissed((prev) => [...prev, thought.id])
-                }
-              />
-            ) : null}
           </div>
         </div>
+
+        {/* Pensamiento de quien investiga: panel al costado de la pantalla
+            (mismo formato que el panel de "salas completadas" del plano), en
+            vez de una burbuja flotando encima que tape íconos o ventanas. */}
+        {thought && !thoughtsDismissed.includes(thought.id) ? (
+          <ThoughtBubble
+            text={thought.text}
+            team={team}
+            onDismiss={() =>
+              setThoughtsDismissed((prev) => [...prev, thought.id])
+            }
+          />
+        ) : null}
       </div>
     </main>
   )

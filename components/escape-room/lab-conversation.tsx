@@ -78,6 +78,15 @@ export type LabConversationConfig = {
       backgroundSize: string
       backgroundPosition: string
     }
+    /**
+     * Aria-label del botón y aviso "Ya preguntaste todo…" que describen la
+     * pantalla encendida. Por defecto asumen la pantalla azul genérica
+     * (":("); si `preview` muestra otra cosa (p. ej. un escritorio real,
+     * como en CEO), conviene describir eso en su lugar para no hablar de
+     * "azul" cuando no lo es.
+     */
+    hotspotLabel?: string
+    hotspotMessage?: string
   }
   /**
    * Si es true, el juego se muestra DENTRO del mismo recuadro con borde y glow
@@ -295,7 +304,10 @@ export function LabConversation({
     }
   }
 
-  // Marca el ámbito como resuelto (lo llama el juego al ganar).
+  // Marca el ámbito como resuelto (lo llama el juego al ganar). Además
+  // actualiza el diálogo YA, en la misma sesión: si no, al salir del juego
+  // se ve el último diálogo previo a jugar (la pregunta que se le hizo antes,
+  // o el saludo) en vez de reconocer que lo superaron.
   function markCompleted() {
     try {
       localStorage.setItem(doneKey, "1")
@@ -303,6 +315,7 @@ export function LabConversation({
       /* noop */
     }
     setCompleted(true)
+    setSpeech(completedSpeech ?? DEFAULT_COMPLETED_SPEECH)
   }
 
   const allAsked = asked.length === questions.length
@@ -508,7 +521,10 @@ export function LabConversation({
               <button
                 type="button"
                 onClick={startGame}
-                aria-label="Computadora con pantalla azul: iniciar el juego"
+                aria-label={
+                  gameHotspot.hotspotLabel ??
+                  "Computadora con pantalla azul: iniciar el juego"
+                }
                 title="Esta computadora se ve extraña…"
                 className="absolute z-30 cursor-pointer"
                 style={{
@@ -621,7 +637,8 @@ export function LabConversation({
                   <p className="font-mono text-[0.72rem] text-muted-foreground">
                     {allAsked
                       ? gameHotspot
-                        ? "Ya preguntaste todo. Una de las computadoras se puso azul… hacé clic en ella."
+                        ? (gameHotspot.hotspotMessage ??
+                          "Ya preguntaste todo. Una de las computadoras se puso azul… hacé clic en ella.")
                         : "Ya preguntaste todo. Podés iniciar el juego."
                       : `Elegí una pregunta · faltan ${remaining} para iniciar`}
                   </p>

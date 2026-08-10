@@ -33,6 +33,11 @@ const CEO_CONFIG: LabConversationConfig = {
       backgroundSize: "100% 100%",
       backgroundPosition: "center",
     },
+    // No es la pantalla azul genérica: muestra el escritorio real, así que el
+    // aviso y el aria-label lo describen en vez de hablar de "azul".
+    hotspotLabel: "Computadora encendida con el escritorio: iniciar el juego",
+    hotspotMessage:
+      "Ya preguntaste todo. Una de las computadoras se encendió… hacé clic en ella.",
   },
   questions: [
     {
