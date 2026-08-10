@@ -29,7 +29,7 @@ const HMP_CONFIG: LabConversationConfig = {
     "Eh… hola. Soy Valen. Perdón, estoy medio disperso, tengo mil cosas pendientes. Pero dale, preguntá… intento ayudar, creo.",
   closingSpeech:
     "Ok, ok… arranquemos con los desafíos de realidad virtual. Conecten bien los cables y sigan las secuencias de símbolos. Sí, eso. Bastante seguro.",
-  password: "SINCRO",
+  password: "MOTHERBOARD",
   completedSpeech:
     "Uf, la secuencia quedó sincronizada y el pendrive recuperó el fragmento de HMP. Ya está, bastante seguro. Podés revisar el registro de la entrevista si querés.",
   // El juego se muestra dentro del recuadro (como las entrevistas), no fullscreen.
