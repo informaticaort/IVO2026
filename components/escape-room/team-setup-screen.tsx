@@ -13,10 +13,13 @@ export type TeamData = {
 
 export function TeamSetupScreen({
   onContinue,
+  initialName = "",
 }: {
   onContinue: (data: TeamData) => void
+  /** Nombre traído del taller de logo, para no reescribirlo. */
+  initialName?: string
 }) {
-  const [name, setName] = useState("")
+  const [name, setName] = useState(initialName)
   const [avatar, setAvatar] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
