@@ -15,26 +15,27 @@ type Equation = { id: string; expression: string; result: number; letter: string
 // Los 3 niveles, con dificultad creciente en las expresiones. Las letras de
 // todos los niveles, en orden, forman DECRYPT.
 const LEVELS: { equations: Equation[] }[] = [
-  // Nivel 1 — cálculos simples (una operación).
+  // Nivel 1 — una multiplicación metida entre sumas y restas: hay que aplicar
+  // el orden de operaciones antes de resolver de izquierda a derecha.
   {
     equations: [
-      { id: "e1", expression: "34 × 2", result: 68, letter: "D" },
-      { id: "e2", expression: "72 − 3", result: 69, letter: "E" },
-      { id: "e3", expression: "60 + 7", result: 67, letter: "C" },
+      { id: "e1", expression: "6 × 7 + 18 + 10 − 2", result: 68, letter: "D" },
+      { id: "e2", expression: "9 × 8 − 20 + 25 − 8", result: 69, letter: "E" },
+      { id: "e3", expression: "5 × 12 + 14 − 9 + 2", result: 67, letter: "C" },
     ],
   },
-  // Nivel 2 — varias operaciones con orden de operaciones (sin paréntesis guía).
+  // Nivel 2 — entran los paréntesis y la división, junto al orden de operaciones.
   {
     equations: [
-      { id: "e4", expression: "100 − 3 × 6", result: 82, letter: "R" },
-      { id: "e5", expression: "7 × 13 − 2", result: 89, letter: "Y" },
+      { id: "e4", expression: "(12 + 8) × 4 + 10 − 8", result: 82, letter: "R" },
+      { id: "e5", expression: "100 ÷ 4 × 3 + 20 − 6", result: 89, letter: "Y" },
     ],
   },
-  // Nivel 3 — potencias combinadas y orden de operaciones.
+  // Nivel 3 — potencias combinadas con paréntesis y multiplicación.
   {
     equations: [
-      { id: "e6", expression: "4³ + 4²", result: 80, letter: "P" },
-      { id: "e7", expression: "7² + 5 × 7", result: 84, letter: "T" },
+      { id: "e6", expression: "3³ + 6² + 4 × 5 − 3", result: 80, letter: "P" },
+      { id: "e7", expression: "(4² + 5) × 4 + 2³ − 8", result: 84, letter: "T" },
     ],
   },
 ]
@@ -54,6 +55,16 @@ const ASCII_TABLE = Array.from({ length: 26 }, (_, i) => ({
   code: 65 + i,
 }))
 
+// Esquina donde aparece la X de cerrar cada aviso: la 0 es la del cartel
+// inicial y después va una por nivel. Hay que buscarla, así el cartel se lee
+// en vez de cerrarse de memoria.
+const CLOSE_CORNERS = [
+  "bottom-3 right-3",
+  "right-3 top-3",
+  "bottom-3 left-3",
+  "left-3 top-3",
+]
+
 export function AmiEquationsGame({
   onExit,
   onWin,
@@ -71,6 +82,10 @@ export function AmiEquationsGame({
   const [error, setError] = useState(false)
   const [won, setWon] = useState(false)
   const [showTable, setShowTable] = useState(false)
+  // Cartel de arranque: se muestra apenas se abre la terminal.
+  const [intro, setIntro] = useState(true)
+  // Nivel recién descifrado (0..2) mientras se muestra el aviso; null = cerrado.
+  const [notice, setNotice] = useState<number | null>(null)
   const tableRef = useRef<HTMLDivElement>(null)
 
   // Al abrir la tabla (por el botón o por el término "código ASCII"), la
@@ -100,6 +115,7 @@ export function AmiEquationsGame({
       return
     }
     setLevelError(false)
+    setNotice(level)
     if (level < LEVEL_COUNT - 1) {
       setLevel(level + 1)
     } else {
@@ -341,6 +357,79 @@ export function AmiEquationsGame({
           </div>
         </div>
       )}
+        </div>
+      </div>
+
+      {/* Avisos: tapan el juego hasta que los cierren con la X. */}
+      {intro ? (
+        <Notice
+          title="Antes de empezar"
+          corner={CLOSE_CORNERS[0]}
+          onClose={() => setIntro(false)}
+        >
+          Tengan <strong>papel y lapicera</strong> a mano: van a necesitar anotar
+          el resultado de cada ecuación. Son los códigos ASCII con los que se arma
+          la contraseña final, y la terminal no los guarda.
+        </Notice>
+      ) : notice !== null ? (
+        <Notice
+          title={`Nivel ${notice + 1} descifrado`}
+          corner={CLOSE_CORNERS[(notice + 1) % CLOSE_CORNERS.length]}
+          onClose={() => setNotice(null)}
+        >
+          No se olviden de <strong>anotar los resultados</strong> de este nivel:
+          son los códigos ASCII que van a necesitar para armar la contraseña
+          final. La terminal no vuelve a mostrarlos.
+        </Notice>
+      ) : null}
+    </div>
+  )
+}
+
+/** Cartel emergente del juego (arranque y fin de cada nivel): recuerda anotar
+ *  los resultados, porque el juego no los muestra de nuevo. Marco amarillo del
+ *  ámbito AMI y X de cerrar en la esquina que le toque al aviso. */
+function Notice({
+  title,
+  corner,
+  onClose,
+  children,
+}: {
+  title: string
+  /** Clases de posición de la X (ver CLOSE_CORNERS). */
+  corner: string
+  onClose: () => void
+  children: React.ReactNode
+}) {
+  return (
+    <div className="absolute inset-0 z-20 flex items-center justify-center bg-[#020a3a]/85 p-4 backdrop-blur-sm">
+      <div
+        role="dialog"
+        aria-modal
+        aria-labelledby="ami-notice-title"
+        className="relative w-full max-w-md rounded-xl border-4 border-[oklch(0.9_0.19_100)] bg-[#04125e] p-8 text-center shadow-[0_0_40px_oklch(0.9_0.19_100/0.35)]"
+      >
+        {/* La X cambia de esquina en cada aviso (CLOSE_CORNERS). */}
+        <button
+          type="button"
+          onClick={onClose}
+          autoFocus
+          aria-label="Cerrar aviso"
+          className={`absolute ${corner} flex size-9 items-center justify-center rounded-md border-2 border-[oklch(0.9_0.19_100)] font-pixel text-[0.95rem] text-[oklch(0.9_0.19_100)] transition-colors hover:bg-[oklch(0.9_0.19_100)] hover:text-[#061a8f]`}
+        >
+          ✕
+        </button>
+
+        <div className="px-6">
+          <p
+            id="ami-notice-title"
+            className="font-pixel text-[1.2rem] leading-relaxed text-[oklch(0.9_0.19_100)]"
+          >
+            {title}
+          </p>
+          <p className="mt-4 font-mono text-[1.05rem] leading-relaxed text-white/90">
+            {children}
+          </p>
         </div>
       </div>
     </div>
