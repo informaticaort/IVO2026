@@ -19,23 +19,22 @@ const pressStart = Press_Start_2P({
 export const metadata: Metadata = {
   title: 'IA Fuera de Control | Sala de Escape',
   description: 'Sala de escape: IA Fuera de Control',
-  generator: 'v0.app',
   icons: {
     icon: [
       {
-        url: '/icon-light-32x32.png',
+        url: '/images/InfoOrtLogo.png',
         media: '(prefers-color-scheme: light)',
       },
       {
-        url: '/icon-dark-32x32.png',
+        url: '/images/InfoOrtLogo.png',
         media: '(prefers-color-scheme: dark)',
       },
       {
-        url: '/icon.svg',
+        url: '/images/InfoOrtLogo.png',
         type: 'image/svg+xml',
       },
     ],
-    apple: '/apple-icon.png',
+    apple: '/images/InfoOrtLogo.png',
   },
 }
 

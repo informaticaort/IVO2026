@@ -26,7 +26,7 @@ export function WelcomeScreen({ onStart }: { onStart: () => void }) {
             crisis superpuesto, como un registro de seguridad intervenido. */}
         <figure className="group relative w-full overflow-hidden rounded-[1.25rem] border-2 border-[var(--neon-red)]/55 shadow-[0_0_40px_color-mix(in_oklch,var(--neon-red)_28%,transparent)]">
           <Image
-            src="/images/ADDE_LABS.png"
+            src="/images/ADDE_LABS.gif"
             alt="Instalaciones de ADDE Labs, la empresa donde se descontroló la IA"
             width={1672}
             height={941}
