@@ -62,15 +62,6 @@ const CEO_CONFIG: LabConversationConfig = {
     },
     {
       id: "q3",
-      question: "¿Cómo era tu relación con Avril?",
-      answer:
-        "Normal.\nBueno… normal dentro de lo que puede ser trabajar con Avril.\n\n" +
-        "Ella tiene buenas ideas y es una buena líder, pero tiene una relación bastante complicada con los horarios.\n\n" +
-        "Yo le decía que teníamos que revisar los permisos antes de la presentación y ella decía: “Sí, sí, después lo vemos.” Ese “después” eventualmente se convirtió en un problema.\n\n" +
-        "Pero tampoco exageremos. Discutir por cuestiones de trabajo no significa querer sabotear a alguien. Si fuera así, tendría que sabotear a todo el equipo.",
-    },
-    {
-      id: "q4",
       question: "¿Qué hizo la IA en el área CEO?",
       answer:
         "Alteró módulos de programación, mezcló instrucciones y rompió partes del flujo lógico del sistema.\n\n" +
@@ -78,7 +69,7 @@ const CEO_CONFIG: LabConversationConfig = {
         "Básicamente, hacer lo que yo hago todos los días, pero más lento.",
     },
     {
-      id: "q5",
+      id: "q4",
       question: "Algunos dicen que tuviste discusiones fuertes con el equipo.",
       answer:
         "¿Fuertes? No. Yo diría que fueron… educativas.\n\n" +
@@ -89,17 +80,7 @@ const CEO_CONFIG: LabConversationConfig = {
       // PISTA 4/10: su muletilla. Aparece escrita al revés dentro del código
       // corrupto del juego de CEO ("// nota: odasep er yvaeh er").
       highlights: ["re heavy, re pesado"],
-    },
-    {
-      id: "q6",
-      question: "¿Creés que Avril es culpable?",
-      answer:
-        "No.\n\n" +
-        "¿Descuidó su credencial? Sí. ¿Debería haber tenido mejores controles de acceso? También.\nPero de ahí a decir que sabotearía su propio proyecto… no me cierra.\n\n" +
-        "Además, hay algo que deberían tener en cuenta. Si alguien quería culpar a Avril, usar su credencial era demasiado obvio. Es casi como dejar un cartel que diga: “Hola, soy el culpable. Besitos.”\n\n" +
-        "Y eso me lleva a otra posibilidad. Quizás quien hizo esto quería que sospecháramos de Avril. O de alguien más.\n\n" +
-        "No sé quién fue. Pero si me preguntan, yo empezaría mirando quién tuvo acceso a las áreas y quién sabía exactamente qué sistemas atacar.\nEso les va a decir mucho más que quién discutió con quién.",
-    },
+    }
   ],
 }
 

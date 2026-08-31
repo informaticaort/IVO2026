@@ -27,14 +27,6 @@ const LUM_CONFIG: LabConversationConfig = {
     },
     {
       id: "q2",
-      question: "¿Por qué estás en el área de Diseño si sos tan técnico?",
-      answer:
-        "Porque el diseño también tiene reglas.\n\n" +
-        "De hecho, un diseño no es “hacer algo lindo”. Es organizar información visual para que una persona la entienda.\n\n" +
-        "La IA rompió grillas, colores, jerarquías, márgenes, alineaciones… un desastre.\nUn desastre medible, por suerte.",
-    },
-    {
-      id: "q3",
       question: "¿Qué pasó exactamente en LUM?",
       answer:
         "La IA alteró las pantallas principales. Cambió patrones visuales, desordenó elementos y escondió pistas dentro de errores de diseño.\n\n" +
@@ -42,7 +34,7 @@ const LUM_CONFIG: LabConversationConfig = {
         "El problema es que alguien alteró deliberadamente la lógica que yo había diseñado.\nY de hecho, eso me molesta. Y mucho.",
     },
     {
-      id: "q4",
+      id: "q3",
       question: "¿Quién creés que pudo usar la credencial de Avril?",
       answer:
         "Cualquiera con acceso físico a su escritorio.\n\n" +
@@ -50,18 +42,7 @@ const LUM_CONFIG: LabConversationConfig = {
         "Hay demasiadas cosas que coinciden.\nY cuando demasiadas cosas coinciden, normalmente alguien está intentando que parezcan una coincidencia.",
     },
     {
-      id: "q5",
-      question: "¿Notaste algo raro antes del sabotaje?",
-      answer:
-        "Sí. Belén estaba discutiendo con Avril. Mica estaba intentando calmarlas. Valen estaba… haciendo algo. No sé qué. Siempre está haciendo algo.\n\n" +
-        "Pero hay algo que me preocupa más. La IA atacó primero los sistemas que registraban actividad.\n\n" +
-        "Eso significa que quien hizo esto sabía exactamente qué información necesitaba borrar.\nEso requiere conocimiento. De hecho, mucho conocimiento.",
-      // PISTA 9/10: el saboteador sabía qué borrar: conocimiento técnico fino,
-      // del que solo tiene alguien que programa el sistema.
-      highlights: ["sabía exactamente qué información necesitaba borrar"],
-    },
-    {
-      id: "q6",
+      id: "q4",
       question: "¿Qué pista nos podés dar?",
       answer:
         "El código corrupto tiene una estructura demasiado ordenada. Eso es lo que me molesta.\n\n" +

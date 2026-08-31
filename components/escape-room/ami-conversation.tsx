@@ -66,26 +66,7 @@ const AMI_CONFIG: LabConversationConfig = {
       highlights: [
         "siempre es porque los demás no entendieron lo que ella explicó",
       ],
-    },
-    {
-      id: "q5",
-      question: "¿Viste algo raro antes del sabotaje?",
-      answer:
-        "Vi a Belén muy alterada después de una reunión con Avril. Decía que si el sistema fallaba, ella no iba a cargar con la culpa de errores ajenos.\n\n" +
-        "También escuché que Avril no encontraba su credencial. Pensé que la había perdido como otras veces, porque siempre llega tarde, se apura y deja cosas por cualquier lado.\n\n" +
-        "Ahora me preocupa que alguien se haya aprovechado de eso.",
-      // PISTA 2/10: el motivo — no estaba dispuesta a cargar con la culpa.
-      highlights: ["no iba a cargar con la culpa de errores ajenos"],
-    },
-    {
-      id: "q6",
-      question: "¿Creés que la IA actuó sola?",
-      answer:
-        "No. Y no creo que sea tan simple como “la IA se volvió loca”. Alguien le dio una instrucción.\n\n" +
-        "La IA está siguiendo algo. Una orden corrupta, probablemente. Lo que no sé es quién.\n\n" +
-        "Aunque tengo una idea. No de quién lo hizo. De quién sabía que nadie iba a escuchar cuando avisara.\n\n" +
-        "Porque eso es lo que más me molesta. Todos están buscando al culpable ahora. Pero cuando había que prevenirlo, nadie quería escucharme.",
-    },
+    }
   ],
 }
 

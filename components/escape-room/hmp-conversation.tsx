@@ -72,14 +72,6 @@ const HMP_CONFIG: LabConversationConfig = {
     },
     {
       id: "q5",
-      question: "¿Creés que Avril pudo haberlo hecho?",
-      answer:
-        "No sé.\n\n" +
-        "Avril llega tarde, se olvida reuniones, pierde cosas… pero sabotear su propio proyecto me parece mucho.\n\n" +
-        "Además, si Avril quisiera romper algo, probablemente llegaría tarde también al sabotaje.\nPerdón, no debería bromear. Estoy nervioso.",
-    },
-    {
-      id: "q6",
       question: "¿Qué pista importante tenés?",
       answer:
         "Hay algo que no me cierra.\n\n" +

@@ -16,7 +16,7 @@ export function EscapeRoom() {
   const [suggestedName, setSuggestedName] = useState("")
 
   if (step === "welcome") {
-    return <WelcomeScreen onStart={() => setStep("logo")} />
+    return <WelcomeScreen onStart={() => setStep("setup")} />
   }
 
   if (step === "logo") {
