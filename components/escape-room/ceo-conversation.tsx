@@ -8,9 +8,9 @@ import { CeoDesktopGame } from "./ceo-desktop-game"
  * ---------------------------------------------------------------------- */
 const CEO_CONFIG: LabConversationConfig = {
   acronym: "CEO",
-  speaker: "Belen",
+  speaker: "Belén",
   greeting:
-    "Soy Belen. Programación. Dale, preguntá lo que quieras… total ya decidieron que soy sospechosa antes de escucharme.",
+    "Soy Belén. Programación. Dale, preguntá lo que quieras… total ya decidieron que soy sospechosa antes de escucharme.",
   closingSpeech:
     "Bien. Suficiente charla. Fíjense en esa computadora del fondo: se encendió sola con el desafío de programación cargado… a ver si son tan rápidos como dicen.",
   password: "HACK3D",
@@ -42,69 +42,63 @@ const CEO_CONFIG: LabConversationConfig = {
   questions: [
     {
       id: "q1",
-      question: "Belen, ¿dónde estabas a las 03:00 AM?",
+      question: "Belén, ¿dónde estabas a las 03:00 AM?",
       answer:
-        "En mi casa. Durmiendo, claramente. " +
-        "Aunque si me preguntan, el verdadero problema no es dónde estaba yo, sino por qué el sistema permitió que una credencial como la de Avril pudiera ejecutar algo tan crítico sin una segunda validación. " +
-        "Pero bueno, eso ya lo había dicho yo antes. Nadie me escuchó.",
-      highlights: [
-        "una credencial como la de Avril",
-        "sin una segunda validación",
-      ],
+        "En mi casa. Durmiendo.\nY antes de que me pregunten: sí, también tengo registros que lo pueden comprobar.\n\n" +
+        "Aunque, si quieren mi opinión, deberíamos estar preguntándonos otra cosa: ¿cómo consiguió alguien usar una credencial ajena para ejecutar una acción tan crítica?\nEso es un problema de seguridad bastante más interesante.\n\n" +
+        "Pero bueno… ustedes pregunten y yo respondo.",
     },
     {
       id: "q2",
       question:
         "El sabotaje se hizo con código. Vos trabajás en Programación. ¿Eso no te compromete?",
       answer:
-        "No. Me compromete saber programar, no sabotear. " +
-        "Que alguien haya escrito código corrupto no significa que lo haya hecho yo. En esta empresa todos tocan algo del sistema, aunque algunos lo hagan bastante mal. " +
-        "Además, si yo hubiera escrito ese código, no habría fallado de esta manera. Habría sido más limpio, más preciso y, sinceramente, más difícil de detectar.",
-      highlights: [
-        "si yo hubiera escrito ese código",
-        "Habría sido más limpio, más preciso y, sinceramente, más difícil de detectar",
-      ],
+        "¿Me compromete saber programar? Entonces estamos en problemas, porque medio equipo debería estar detenido.\n\n" +
+        "Una cosa es escribir código y otra muy distinta es sabotear un sistema.\n\n" +
+        "Además, miren el código antes de acusar. Tiene errores bastante básicos. Yo no programaría así.\nBueno… probablemente sí cometería errores, pero no esos.",
+      // PISTA 3/10: se despega de un código torpe… pero el código corrupto es
+      // justamente prolijo (ver la pista de Avril y la de Santi).
+      highlights: ["Tiene errores bastante básicos. Yo no programaría así"],
     },
     {
       id: "q3",
       question: "¿Cómo era tu relación con Avril?",
       answer:
-        "Avril es buena líder cuando llega. El problema es que casi nunca llega a tiempo. " +
-        "Siempre apurada, siempre improvisando, siempre diciendo “después lo vemos”. Y después, claro, pasan estas cosas. " +
-        "Yo le advertí que había que reforzar permisos, revisar accesos y separar responsabilidades. No me hizo caso. " +
-        "Ahora todos miran sorprendidos el incendio que yo ya había señalado.",
-      highlights: ["reforzar permisos, revisar accesos y separar responsabilidades"],
+        "Normal.\nBueno… normal dentro de lo que puede ser trabajar con Avril.\n\n" +
+        "Ella tiene buenas ideas y es una buena líder, pero tiene una relación bastante complicada con los horarios.\n\n" +
+        "Yo le decía que teníamos que revisar los permisos antes de la presentación y ella decía: “Sí, sí, después lo vemos.” Ese “después” eventualmente se convirtió en un problema.\n\n" +
+        "Pero tampoco exageremos. Discutir por cuestiones de trabajo no significa querer sabotear a alguien. Si fuera así, tendría que sabotear a todo el equipo.",
     },
     {
       id: "q4",
       question: "¿Qué hizo la IA en el área CEO?",
       answer:
-        "Alteró módulos de programación, mezcló instrucciones y rompió partes del flujo lógico del sistema. " +
-        "Para recuperar el fragmento de esta área, tienen que resolver el desafío de programación: ordenar instrucciones, detectar errores y reconstruir la secuencia correcta. " +
+        "Alteró módulos de programación, mezcló instrucciones y rompió partes del flujo lógico del sistema.\n\n" +
+        "Para recuperar el fragmento de esta área, tienen que resolver el desafío de programación: ordenar instrucciones, detectar errores y reconstruir la secuencia correcta.\n\n" +
         "Básicamente, hacer lo que yo hago todos los días, pero más lento.",
     },
     {
       id: "q5",
       question: "Algunos dicen que tuviste discusiones fuertes con el equipo.",
       answer:
-        "Porque el equipo se equivoca y alguien tiene que decirlo. " +
-        "Santi se obsesiona con detalles mínimos. Valen vive colapsado, entonces deja cosas a medias. Mica le habla a la IA como si fuera una mascota. " +
-        "Yo soy la única que se toma en serio la arquitectura del sistema. " +
-        "Y ahora resulta que por tener razón soy sospechosa, re heavy, re pesado.",
-      highlights: ["la única que se toma en serio la arquitectura del sistema"],
+        "¿Fuertes? No. Yo diría que fueron… educativas.\n\n" +
+        "Miren, tengo un pequeño defecto: cuando veo algo mal, lo digo. Y aparentemente eso no siempre cae bien.\n\n" +
+        "Santi se obsesiona con detalles. Valen intenta hacer veinte cosas al mismo tiempo. Mica le habla a la IA como si fuera una mascota. Y Avril… bueno, Avril tiene demasiadas cosas en la cabeza.\n\n" +
+        "Pero eso no significa que no los valore. Si realmente quisiera que todo saliera mal, créanme que no estaría intentando arreglarlo ahora.\n\n" +
+        "Y ahora resulta que por decir lo que pienso soy sospechosa, re heavy, re pesado.",
+      // PISTA 4/10: su muletilla. Aparece escrita al revés dentro del código
+      // corrupto del juego de CEO ("// nota: odasep er yvaeh er").
+      highlights: ["re heavy, re pesado"],
     },
     {
       id: "q6",
       question: "¿Creés que Avril es culpable?",
       answer:
-        "No sé si culpable, pero responsable seguro. " +
-        "Su credencial fue usada. Su control falló. Su proyecto explotó. " +
-        "¿Que alguien pudo haberle robado el acceso? Sí, obvio. Pero eso también habla mal de ella. " +
-        "En programación hay una regla básica: si tu sistema permite un desastre, el desastre también es parte de tu diseño.",
-      highlights: [
-        "eso también habla mal de ella",
-        "el desastre también es parte de tu diseño",
-      ],
+        "No.\n\n" +
+        "¿Descuidó su credencial? Sí. ¿Debería haber tenido mejores controles de acceso? También.\nPero de ahí a decir que sabotearía su propio proyecto… no me cierra.\n\n" +
+        "Además, hay algo que deberían tener en cuenta. Si alguien quería culpar a Avril, usar su credencial era demasiado obvio. Es casi como dejar un cartel que diga: “Hola, soy el culpable. Besitos.”\n\n" +
+        "Y eso me lleva a otra posibilidad. Quizás quien hizo esto quería que sospecháramos de Avril. O de alguien más.\n\n" +
+        "No sé quién fue. Pero si me preguntan, yo empezaría mirando quién tuvo acceso a las áreas y quién sabía exactamente qué sistemas atacar.\nEso les va a decir mucho más que quién discutió con quién.",
     },
   ],
 }

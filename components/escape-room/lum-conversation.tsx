@@ -21,62 +21,55 @@ const LUM_CONFIG: LabConversationConfig = {
       id: "q1",
       question: "Santi, ¿qué hacías a las 03:00 AM?",
       answer:
-        "Dormía. De hecho, no solo dormía: estaba en fase de sueño profundo, según mi reloj inteligente. " +
-        "Me dormí a las 23:42, frecuencia cardíaca estable, respiración normal y cero actividad registrada hasta que sonó la alerta general. " +
-        "O sea, técnicamente podría estar mintiendo, pero mis métricas no. Y de hecho, las métricas suelen ser más confiables que las personas.",
+        "Dormía. De hecho, no solo dormía: estaba en fase de sueño profundo, según mi reloj inteligente.\n\n" +
+        "Me dormí a las 23:42. Frecuencia cardíaca estable, respiración normal y cero actividad registrada hasta que sonó la alerta general.\n\n" +
+        "Así que sí. Estaba durmiendo. ¿Podemos pasar a algo más útil?",
     },
     {
       id: "q2",
       question: "¿Por qué estás en el área de Diseño si sos tan técnico?",
       answer:
-        "Porque el diseño también tiene reglas. De hecho, un diseño no es “hacer algo lindo”. Es organizar información visual para que una persona la entienda. " +
-        "La IA rompió grillas, colores, jerarquías, márgenes, alineaciones… un desastre. Un desastre medible, por suerte.",
+        "Porque el diseño también tiene reglas.\n\n" +
+        "De hecho, un diseño no es “hacer algo lindo”. Es organizar información visual para que una persona la entienda.\n\n" +
+        "La IA rompió grillas, colores, jerarquías, márgenes, alineaciones… un desastre.\nUn desastre medible, por suerte.",
     },
     {
       id: "q3",
       question: "¿Qué pasó exactamente en LUM?",
       answer:
-        "La IA alteró las pantallas principales del área. Cambió patrones visuales, desordenó elementos y dejó pistas escondidas dentro de errores de diseño. " +
-        "Para recuperar el fragmento de código de LUM, tienen que resolver el desafío visual. Van a tener que observar diferencias, detectar patrones y reconstruir la interfaz correcta. " +
-        "De hecho, si no prestan atención a los detalles, no van a pasar.",
+        "La IA alteró las pantallas principales. Cambió patrones visuales, desordenó elementos y escondió pistas dentro de errores de diseño.\n\n" +
+        "Para recuperar el fragmento de código de LUM tienen que resolver el desafío visual.\nObservar diferencias, detectar patrones y reconstruir la interfaz correcta. De hecho, no es difícil. Bueno… No debería ser difícil.\n\n" +
+        "El problema es que alguien alteró deliberadamente la lógica que yo había diseñado.\nY de hecho, eso me molesta. Y mucho.",
     },
     {
       id: "q4",
       question: "¿Quién creés que pudo usar la credencial de Avril?",
       answer:
-        "Cualquiera con acceso físico a su escritorio. Avril siempre llega tarde, siempre deja cosas tiradas y siempre dice “después lo ordeno”. " +
-        "De hecho, su credencial estuvo varias veces arriba de la mesa de reuniones. Lo vi. No porque estuviera espiando, sino porque observo detalles. Hay una diferencia.",
-      highlights: [
-        "Cualquiera con acceso físico a su escritorio",
-        "su credencial estuvo varias veces arriba de la mesa de reuniones",
-      ],
+        "Cualquiera con acceso físico a su escritorio.\n\n" +
+        "Avril siempre llega tarde, siempre deja cosas tiradas y siempre dice “después lo ordeno”.\nDe hecho, su credencial estuvo varias veces arriba de la mesa de reuniones.\n\n" +
+        "Hay demasiadas cosas que coinciden.\nY cuando demasiadas cosas coinciden, normalmente alguien está intentando que parezcan una coincidencia.",
     },
     {
       id: "q5",
       question: "¿Notaste algo raro antes del sabotaje?",
       answer:
-        "Sí. Belen estaba insoportable. Más de lo normal. " +
-        "Cada vez que alguien corregía algo de su código, reaccionaba como si le hubieran insultado a un familiar. Decía que nadie entendía su lógica, que él ya lo había previsto, que si algo fallaba era porque los demás no sabían usarlo. " +
-        "De hecho, cuando una persona cree que nunca se equivoca, es muy difícil que admita que rompió algo.",
-      highlights: [
-        "Belen estaba insoportable",
-        "nadie entendía su lógica",
-        "cuando una persona cree que nunca se equivoca",
-      ],
+        "Sí. Belén estaba discutiendo con Avril. Mica estaba intentando calmarlas. Valen estaba… haciendo algo. No sé qué. Siempre está haciendo algo.\n\n" +
+        "Pero hay algo que me preocupa más. La IA atacó primero los sistemas que registraban actividad.\n\n" +
+        "Eso significa que quien hizo esto sabía exactamente qué información necesitaba borrar.\nEso requiere conocimiento. De hecho, mucho conocimiento.",
+      // PISTA 9/10: el saboteador sabía qué borrar: conocimiento técnico fino,
+      // del que solo tiene alguien que programa el sistema.
+      highlights: ["sabía exactamente qué información necesitaba borrar"],
     },
     {
       id: "q6",
       question: "¿Qué pista nos podés dar?",
       answer:
-        "El código corrupto no parece hecho por alguien desordenado. Tiene una lógica bastante estructurada. " +
-        "Pero también tiene algo raro: está lleno de decisiones innecesariamente arrogantes. Nombres de funciones como si el autor quisiera dejar claro que era más inteligente que todos. " +
-        "Eso no prueba nada, de hecho. Pero apunta a alguien con bastante ego.",
-      highlights: [
-        "una lógica bastante estructurada",
-        "decisiones innecesariamente arrogantes",
-        "más inteligente que todos",
-        "alguien con bastante ego",
-      ],
+        "El código corrupto tiene una estructura demasiado ordenada. Eso es lo que me molesta.\n\n" +
+        "Si alguien quisiera destruir el sistema, podría haberlo hecho de cualquier manera. Pero no. Lo hizo siguiendo una lógica. Una lógica que yo debería haber detectado y que, de hecho, no detecté.\n\n" +
+        "Eso significa que alguien logró estar un paso adelante mío. No me gusta, para nada.\n\n" +
+        "Así que no estoy buscando solamente al saboteador. Estoy intentando descubrir quién fue capaz de engañarme. Porque si alguien consiguió hacer eso… Quiero saber quién.",
+      // PISTA 10/10: cierra con Avril — código "muy ordenado pero con soberbia".
+      highlights: ["El código corrupto tiene una estructura demasiado ordenada"],
     },
   ],
 }

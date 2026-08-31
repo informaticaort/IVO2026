@@ -35,17 +35,13 @@ const CIDI_CONFIG: LabConversationConfig = {
         "Ya revisamos los accesos y el sabotaje se ejecutó con tu credencial. ¿Qué hiciste con ella?",
       answer:
         "¡La perdí! Ayer con el caos de las entregas estuve súper desordenada. La debo haber dejado olvidada en la mesa de reuniones o en mi escritorio. Alguien aprovechó mi descuido, me la robó y me usó de chivo expiatorio.",
-      highlights: [
-        "dejado olvidada en la mesa de reuniones",
-        "me la robó y me usó de chivo expiatorio",
-      ],
     },
     {
       id: "q3",
       question:
         "Los encargados de las áreas ya nos explicaron el desastre, pero como líder: ¿qué está haciendo la IA ahora mismo?",
       answer:
-        "El código corrupto la volvió paranoica. Bloqueó los accesos generales y empezó a encriptar todo para “defenderse”. El tiempo corre: si no la desinfectamos en los minutos que quedan, el sistema ejecutará la auto-destrucción total.",
+        "El código corrupto la volvió paranoica. Bloqueó los accesos generales y empezó a encriptar todo para “defenderse”. El tiempo corre: si no la desinfectamos en los minutos que quedan, el sistema ejecutará la autodestrucción total.",
     },
     {
       id: "q4",
@@ -53,11 +49,6 @@ const CIDI_CONFIG: LabConversationConfig = {
         "Belén nos contó que tuvieron una discusión durísima antes del colapso. ¿Por qué nos lo ocultaste?",
       answer:
         "No se los oculté, ¡recién llego! Estaba insoportable criticando la seguridad y me dijo que si algo fallaba sería mi culpa. Me dio tanto dolor de cabeza que dejé mis cosas en la mesa y me fui a tomar un café. Ahí fue cuando me sacaron la credencial.",
-      highlights: [
-        "si algo fallaba sería mi culpa",
-        "dejé mis cosas en la mesa y me fui a tomar un café",
-        "Ahí fue cuando me sacaron la credencial",
-      ],
     },
     {
       id: "q5",
@@ -65,11 +56,8 @@ const CIDI_CONFIG: LabConversationConfig = {
         "Ya hablamos con Santi, Valen, Mica y Belén. Con todo lo que sabés de ellos, ¿quién creés que es el responsable?",
       answer:
         "Escondió el código en las cuatro áreas, así que conoce las debilidades del sistema desde adentro y planeó esto con mucha frialdad. Cualquiera que tuviera acceso a la arquitectura y una razón para sabotearnos pudo ser. No descarten a nadie por su personalidad.",
-      highlights: [
-        "conoce las debilidades del sistema desde adentro",
-        "planeó esto con mucha frialdad",
-        "Cualquiera que tuviera acceso a la arquitectura",
-      ],
+      // PISTA 5/10: el saboteador conoce el sistema desde adentro.
+      highlights: ["conoce las debilidades del sistema desde adentro"],
     },
     {
       id: "q6",
@@ -77,6 +65,7 @@ const CIDI_CONFIG: LabConversationConfig = {
         "Ya recuperamos los fragmentos de AMI, LUM, CEO y HMP en el pendrive. Estamos frente al CIDI, ¿cómo entramos?",
       answer:
         "¡Excelente, es el último paso! Como ya tienen todo listo, la terminal les va a habilitar el acceso al CIDI. Para desinfectar la IA, piensen en la lógica del saboteador: el código va a estar muy ordenado pero con soberbia. Tienen que ingresar los 4 fragmentos en el orden correcto de la estructura. ¡Háganlo ya o perdemos todo!",
+      // PISTA 6/10: el retrato del saboteador — orden + soberbia.
       highlights: ["el código va a estar muy ordenado pero con soberbia"],
     },
   ],

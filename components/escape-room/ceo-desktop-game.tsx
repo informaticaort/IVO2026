@@ -943,7 +943,7 @@ function VsCodeWindow({
           </CodeLine>
           {/* Marca del hacker: un comentario "de más" que parece un apunte
               suelto, pero es la frase "re heavy re pesado" escrita al revés
-              (odasep er yvaeh er). Es la muletilla de Belen en la entrevista,
+              (odasep er yvaeh er). Es la muletilla de Belén en la entrevista,
               así que leerla de atrás para adelante la delata. Sin herramientas:
               se resuelve leyéndola al revés. Va tenue, como algo que quedó
               pegado en el código sin querer. */}

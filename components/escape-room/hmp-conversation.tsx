@@ -39,61 +39,55 @@ const HMP_CONFIG: LabConversationConfig = {
       id: "q1",
       question: "Valen, ¿qué hacías a las 03:00 AM?",
       answer:
-        "¿A las 03:00 AM? No sé... esperen. Sí, sí sé, creo. " +
-        "Estaba en mi casa intentando terminar un informe que era para ayer. O para antes de ayer. No, pará… el informe era para hoy, pero también tenía pendiente calibrar los cascos de VR. " +
-        "A ver, no estuve acá. Eso seguro. O casi seguro. No, seguro. Tengo mensajes enviados desde mi casa como a las 02:40 que dicen “ya casi termino”, que es mentira porque no terminé nada.",
+        "¿A las 03:00 AM? No sé… esperen. Sí, sí sé, creo.\n\n" +
+        "Estaba en mi casa intentando terminar un informe que era para ayer. O para antes de ayer.\nNo, pará… el informe era para hoy, pero también tenía pendiente calibrar los cascos de VR.\n\n" +
+        "A ver, no estuve acá. Eso seguro. O casi seguro. No, seguro.\nTengo mensajes enviados desde mi casa como a las 02:40 que dicen “ya casi termino”, que es mentira porque no terminé nada.",
     },
     {
       id: "q2",
       question: "¿Qué pasó en HMP?",
       answer:
-        "Todo se desconfiguró. " +
-        "Los cascos de realidad virtual muestran escenarios mezclados, los cables no coinciden con las terminales, los sensores responden tarde y las secuencias de símbolos aparecen en cualquier orden. " +
-        "La IA convirtió el área en una especie de sala de escape dentro de la sala de escape. Lo cual sería interesante si yo no tuviera quince cosas pendientes.",
+        "Todo se desconfiguró.\n\n" +
+        "Los cascos de realidad virtual muestran escenarios mezclados, los sensores responden tarde y las secuencias de símbolos aparecen en cualquier orden.\n\n" +
+        "La IA convirtió el área en una especie de sala de escape dentro de la sala de escape.\nLo cual sería interesante si yo no tuviera quince cosas pendientes.",
     },
     {
       id: "q3",
-      question: "¿Qué tienen que hacer los jugadores en esta área?",
+      question: "¿Qué hay que resolver en esta área?",
       answer:
-        "Tienen que resolver los desafíos de realidad virtual. " +
-        "Primero, conectar o identificar cables siguiendo pistas lógicas. No es al azar. Hay que comunicarse, leer bien y decidir qué va con qué. " +
-        "Después, resolver secuencias de símbolos. El sistema les va a mostrar patrones y ustedes tienen que ingresarlos en el orden correcto. " +
-        "Si completan eso, el pendrive recupera el fragmento de HMP.",
+        "Primero tienen que conectar o identificar cables siguiendo pistas lógicas. Después tienen que resolver las secuencias de símbolos. No es al azar.\n\n" +
+        "Tienen que comunicarse y trabajar juntos. Eso último parece bastante importante.\n\n" +
+        "Porque si cada uno intenta resolverlo solo, van a perder tiempo. Yo ya aprendí eso por las malas.",
     },
     {
       id: "q4",
       question: "¿Viste algo raro antes de irte?",
       answer:
-        "Sí. O sea, creo que sí. " +
-        "Vi a Belen discutiendo con Avril por permisos de acceso. Belen decía que el sistema estaba mal diseñado y que si algo fallaba, iba a ser culpa de Avril. " +
-        "Después vi a Mica intentando calmarlas. Le dijo “por favor” a la IA cuando se trabó la pantalla. No sé si cuenta como raro porque Mica hace eso siempre.",
-      highlights: [
-        "Belen discutiendo con Avril por permisos de acceso",
-        "si algo fallaba, iba a ser culpa de Avril",
-      ],
+        "Sí. O sea, creo que sí.\n\n" +
+        "Vi a Belén discutiendo con Avril por permisos de acceso. Belén decía que el sistema estaba mal diseñado y que si algo fallaba, iba a ser culpa de Avril.\n\n" +
+        "Después vi a Mica intentando calmarlas. Le dijo “por favor” a la IA cuando se trabó la pantalla.\nNo sé si cuenta como raro porque Mica hace eso siempre.",
+      // PISTA 7/10: antes del sabotaje ya dejaba dicho a quién había que
+      // culpar si algo fallaba.
+      highlights: ["si algo fallaba, iba a ser culpa de Avril"],
     },
     {
       id: "q5",
       question: "¿Creés que Avril pudo haberlo hecho?",
       answer:
-        "No sé. Avril llega tarde, se olvida reuniones, pierde cosas… pero sabotear su propio proyecto me parece mucho. " +
-        "Además, si Avril quisiera romper algo, probablemente llegaría tarde también al sabotaje. " +
-        "Perdón, no debería bromear. Estoy nervioso.",
-      highlights: ["sabotear su propio proyecto me parece mucho"],
+        "No sé.\n\n" +
+        "Avril llega tarde, se olvida reuniones, pierde cosas… pero sabotear su propio proyecto me parece mucho.\n\n" +
+        "Además, si Avril quisiera romper algo, probablemente llegaría tarde también al sabotaje.\nPerdón, no debería bromear. Estoy nervioso.",
     },
     {
       id: "q6",
       question: "¿Qué pista importante tenés?",
       answer:
-        "Hay algo que no me cierra. " +
-        "La IA alteró primero los sistemas que podían registrar actividad: accesos, logs, sensores. Eso parece planeado. " +
-        "Y el desafío de HMP quedó intervenido de una manera muy específica, como si alguien conociera cómo usamos la realidad virtual para entrenar al equipo. " +
-        "No fue un ataque cualquiera. Fue alguien de adentro. Casi seguro. Bueno, bastante seguro. No sé. Anoten “bastante seguro”.",
-      highlights: [
-        "Eso parece planeado",
-        "como si alguien conociera cómo usamos la realidad virtual",
-        "Fue alguien de adentro",
-      ],
+        "Hay algo que no me cierra.\n\n" +
+        "La IA alteró primero los sistemas que podían registrar actividad: accesos, logs, sensores.\nEso parece planeado.\n\n" +
+        "Y el desafío de HMP quedó intervenido de una manera muy específica, como si alguien conociera cómo usamos la realidad virtual para entrenar al equipo.\n\n" +
+        "No fue un ataque cualquiera. Fue alguien de adentro.\nCasi seguro. Bueno, bastante seguro. No sé.\nAnoten “bastante seguro”.",
+      // PISTA 8/10: el saboteador es del equipo y conoce cómo se usa cada área.
+      highlights: ["Fue alguien de adentro"],
     },
   ],
 }

@@ -84,7 +84,7 @@ type Suspect = {
 
 const SUSPECTS: Suspect[] = [
   { id: "mica", name: "Mica", role: "AMI", image: "/images/MicaPixelArt.png" },
-  { id: "belen", name: "Belen", role: "CEO", image: "/images/BelenPixelArt.png" },
+  { id: "belen", name: "Belén", role: "CEO", image: "/images/BelenPixelArt.png" },
   { id: "valen", name: "Valen", role: "HMP", image: "/images/ValenPixelArt.png" },
   { id: "avril", name: "Avril", role: "CIDI", image: "/images/AvrilPixelArt.png" },
   { id: "santi", name: "Santi", role: "LUM", image: "/images/SantiPixelArt.png" },
@@ -238,7 +238,7 @@ export function CidiFinalGame({
               Felicidades
             </p>
             <p className="max-w-xl rounded-lg border border-[var(--neon-green)]/40 bg-[oklch(0.08_0.04_264/0.75)] px-5 py-4 font-mono text-sm leading-relaxed text-foreground/95 backdrop-blur-sm sm:text-base">
-              Desenmascararon al saboteador: Belen firmó su propio ataque con esa
+              Desenmascararon al saboteador: Belén firmó su propio ataque con esa
               prolijidad arrogante que la delató. Con los 4 fragmentos recuperados,
               la IA quedó desinfectada y el núcleo del CIDI, asegurado. ADDE Labs
               vuelve a estar bajo control. Gran trabajo, equipo.
