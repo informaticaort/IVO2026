@@ -122,14 +122,15 @@ export function isTestingMode(): boolean {
 // │         usar % (ej. "6%", "12%") o píxeles (ej. "80px"). Más grande = más │
 // │         abajo.                                                            │
 // │  · side: de qué lado va el globo. "right" cuando el personaje está a la   │
-// │         izquierda; "left" cuando el personaje está a la derecha (Avril).  │
+// │         izquierda (todos los ámbitos, incluida Avril/CIDI); "left" solo   │
+// │         si algún retrato tuviera el personaje a la derecha.               │
 // └─────────────────────────────────────────────────────────────────────────┘
 const BUBBLE_LAYOUT: Record<string, { top: string; side: "left" | "right" }> = {
   AMI: { top: "20%", side: "right" },
   HMP: { top: "20%", side: "right" },
   CEO: { top: "20%", side: "right" },
   LUM: { top: "20%", side: "right" },
-  CIDI: { top: "20%", side: "left" },
+  CIDI: { top: "30%", side: "right" },
 }
 const DEFAULT_BUBBLE = { top: "6%", side: "right" as const }
 

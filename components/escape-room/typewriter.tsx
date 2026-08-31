@@ -29,16 +29,16 @@ const LINE_PAUSE_MS = 500 // pausa entre renglones (\n) del mismo globo
 // pausa que antes hacía solo la coma). Los signos de cierre (. ? !) frenan un
 // poco más que la coma. Editá o agregá caracteres a gusto.
 const PUNCTUATION_PAUSE_MS: Record<string, number> = {
-  ",": 500,
-  ";": 550,
-  ":": 550,
-  ".": 600,
-  "?": 700,
-  "!": 700,
+  ",": 400,
+  ";": 450,
+  ":": 450,
+  ".": 500,
+  "?": 600,
+  "!": 600,
 }
 // Cuánto se queda un globo ya escrito antes de borrarse/seguir, si no se
 // especificó una duración con [Ns].
-const DEFAULT_HOLD_MS = 1500
+const DEFAULT_HOLD_MS = 1200
 
 type Bubble = { lines: string[]; hold: number }
 
