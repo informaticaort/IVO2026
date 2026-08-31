@@ -27,9 +27,12 @@ const FINAL_KEY = "MOTHERBOARD"
 const PAPER = "#efe6cf"
 const PAPER_PANEL = "#e4d8ba"
 const INK = "#2a2118"
-// Violeta de "acierto": resalta la casilla cuando la letra está en su posición.
-// Matchea el color del borde del recuadro de HMP (LAB_COLORS.HMP).
+// Violeta del ámbito HMP (matchea el borde del recuadro, LAB_COLORS.HMP): se
+// usa en la pista del intento, en los puntitos de nivel y en el aviso de
+// nivel completado.
 const HMP_VIOLET = "oklch(0.62 0.25 300)"
+// Rojo de error (tinta roja de corrección sobre el papel).
+const RED = "#9b2c2c"
 const TYPEWRITER = '"Courier New", Courier, monospace'
 
 // Textura de grano sutil (SVG inline) que se superpone al papel.
@@ -74,6 +77,33 @@ function buildPool(word: string, poolSize: number): string[] {
     letters.add(c)
   }
   return Array.from(letters).sort()
+}
+
+/** Compara el intento con la palabra objetivo: cuántas letras quedaron en la
+ *  posición correcta y cuántas están en la palabra pero mal ubicadas. Cada
+ *  letra del objetivo se cuenta una sola vez (estilo Mastermind), así las
+ *  palabras con letras repetidas no inflan el conteo. */
+function scoreGuess(guess: string, target: string) {
+  const restGuess: string[] = []
+  const restTarget: string[] = []
+  let correct = 0
+  for (let i = 0; i < target.length; i++) {
+    if (guess[i] === target[i]) {
+      correct++
+    } else {
+      restGuess.push(guess[i])
+      restTarget.push(target[i])
+    }
+  }
+  let misplaced = 0
+  for (const ch of restGuess) {
+    const j = restTarget.indexOf(ch)
+    if (j !== -1) {
+      misplaced++
+      restTarget.splice(j, 1)
+    }
+  }
+  return { correct, misplaced }
 }
 
 type Puzzle = { target: string; pool: string[]; reels: number[] }
@@ -124,9 +154,13 @@ export function HmpSequenceGame({
   const [combineReady, setCombineReady] = useState(false)
   // Cartel de acceso previo: solo 2 integrantes van físicamente al HMP.
   const [entered, setEntered] = useState(false)
-  // Aciertos por posición del ÚLTIMO intento (ENVIAR). Se limpia al mover un
-  // dial: el violeta solo aparece como resultado del intento, no en todo momento.
-  const [feedback, setFeedback] = useState<boolean[] | null>(null)
+  // Resultado del ÚLTIMO intento (ENVIAR): cuántas letras quedaron en la
+  // posición correcta y cuántas están en la palabra pero mal ubicadas. Se limpia
+  // al mover un dial: es la pista de ese intento, no un aviso continuo.
+  const [feedback, setFeedback] = useState<{
+    correct: number
+    misplaced: number
+  } | null>(null)
   // Aviso transitorio al pasar de nivel (se limpia al mover un dial).
   const [levelCleared, setLevelCleared] = useState(false)
 
@@ -150,7 +184,7 @@ export function HmpSequenceGame({
     if (won) return
     if (current !== target) {
       setError(true)
-      setFeedback(reels.map((idx, i) => pool[idx] === target[i]))
+      setFeedback(scoreGuess(current, target))
       return
     }
     // Palabra correcta: pasa al siguiente nivel o, si era el último, se pasa a
@@ -353,7 +387,7 @@ export function HmpSequenceGame({
                     {combineError ? (
                       <p
                         className="text-[0.9rem] font-bold uppercase tracking-widest"
-                        style={{ color: "#9b2c2c" }}
+                        style={{ color: RED }}
                       >
                         Las claves no coinciden — reintentá
                       </p>
@@ -456,39 +490,35 @@ export function HmpSequenceGame({
                   className="flex flex-col items-center gap-5 rounded-sm border p-5 sm:p-6"
                   style={{ borderColor: INK }}
                 >
-                  {/* Fila de casillas: ▲ / letra / ▼.
-                      Al presionar ENVIAR, las posiciones acertadas se resaltan
-                      en violeta para ayudar a completar la palabra. Se limpia al
-                      mover cualquier dial. */}
+                  {/* Fila de casillas: ▲ / letra / ▼. Las casillas no delatan qué
+                      letra está bien: la pista del intento va abajo, como conteo
+                      (correctas / en posición incorrecta). */}
                   <div className="flex flex-wrap justify-center gap-2 sm:gap-3">
-                    {reels.map((idx, i) => {
-                      const ok = feedback?.[i] ?? false
-                      return (
-                        <div key={i} className="flex flex-col items-center gap-2">
-                          <ArrowButton
-                            dir="up"
-                            onClick={() => step(i, 1)}
-                            label={`Subir letra ${i + 1}`}
-                          />
-                          <div
-                            className="flex h-16 w-12 items-center justify-center rounded-sm border-2 text-[2rem] font-bold transition-colors sm:h-20 sm:w-14"
-                            style={{
-                              borderColor: ok ? HMP_VIOLET : INK,
-                              backgroundColor: ok ? HMP_VIOLET : PAPER_PANEL,
-                              color: ok ? PAPER : INK,
-                              boxShadow: "inset 0 3px 0 rgba(0,0,0,0.14)",
-                            }}
-                          >
-                            {pool[idx]}
-                          </div>
-                          <ArrowButton
-                            dir="down"
-                            onClick={() => step(i, -1)}
-                            label={`Bajar letra ${i + 1}`}
-                          />
+                    {reels.map((idx, i) => (
+                      <div key={i} className="flex flex-col items-center gap-2">
+                        <ArrowButton
+                          dir="up"
+                          onClick={() => step(i, 1)}
+                          label={`Subir letra ${i + 1}`}
+                        />
+                        <div
+                          className="flex h-16 w-12 items-center justify-center rounded-sm border-2 text-[2rem] font-bold sm:h-20 sm:w-14"
+                          style={{
+                            borderColor: INK,
+                            backgroundColor: PAPER_PANEL,
+                            color: INK,
+                            boxShadow: "inset 0 3px 0 rgba(0,0,0,0.14)",
+                          }}
+                        >
+                          {pool[idx]}
                         </div>
-                      )
-                    })}
+                        <ArrowButton
+                          dir="down"
+                          onClick={() => step(i, -1)}
+                          label={`Bajar letra ${i + 1}`}
+                        />
+                      </div>
+                    ))}
                   </div>
 
                   {/* Botón ENVIAR */}
@@ -511,10 +541,20 @@ export function HmpSequenceGame({
                 </div>
               </div>
 
-              <div className="min-h-[1.5rem]">
-                {error ? (
-                  <p className="text-[0.9rem] font-bold uppercase tracking-widest">
-                    Palabra incorrecta — seguí ajustando las casillas
+              {/* Zona de mensajes centrada y con alto reservado: ocupa lo mismo
+                  vacía que con la pista, así el módulo no se corre hacia arriba
+                  al presionar ENVIAR. */}
+              <div className="min-h-[2rem] text-center">
+                {error && feedback ? (
+                  /* Pista del intento: cuántas acertaron, sin decir cuáles. */
+                  <p
+                    className="text-[1rem] font-bold uppercase tracking-widest"
+                    style={{ color: HMP_VIOLET }}
+                    aria-live="polite"
+                  >
+                    {feedback.correct}{" "}
+                    {feedback.correct === 1 ? "correcta" : "correctas"} —{" "}
+                    {feedback.misplaced} en posición incorrecta
                   </p>
                 ) : levelCleared ? (
                   <p
