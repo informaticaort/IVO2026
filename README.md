@@ -39,15 +39,25 @@ ni internet: el estado de los grupos vive en memoria del proceso.
 
 ### Clave del panel (`/admin`)
 
-El panel se protege con una clave para que los alumnos no vean el monitoreo:
+El panel se protege con una clave para que los alumnos no vean el monitoreo.
+La clave del evento es **`LRDL`** y ya viene configurada: al entrar a `/admin`
+aparece la pantalla de acceso y se tipea ahí.
 
-1. Copiar `.env.example` a `.env.local` y completar `ADMIN_KEY` con una clave difícil.
-   Next carga `.env.local` automáticamente tanto en `dev` como en `start` (no se commitea).
-2. Abrir el panel una vez con `http://<host>:3000/admin?key=TU_CLAVE`.
-   La clave queda **recordada en ese navegador** (localStorage), así que después alcanza
-   con entrar a `/admin`. También se puede tipear en la pantalla de acceso si aparece.
+La clave queda **recordada en ese navegador** (localStorage), así que después
+alcanza con entrar a `/admin`. También se puede pasar por URL:
+`http://<host>:3000/admin?key=LRDL`. No distingue mayúsculas de minúsculas.
 
-Si se deja `ADMIN_KEY` vacío, el panel queda abierto (sin clave).
+Para usar otra clave, copiar `.env.example` a `.env.local` y completar
+`ADMIN_KEY`. Next carga `.env.local` automáticamente tanto en `dev` como en
+`start` (no se commitea). El valor por defecto está en
+[lib/presence/admin-key.ts](lib/presence/admin-key.ts).
+
+### Cuenta regresiva de entrada
+
+Todo el proyecto está detrás de una cuenta regresiva que termina el
+**02/09/2026 a las 09:20** ([components/gate/countdown-gate.tsx](components/gate/countdown-gate.tsx)).
+Antes de esa hora se entra con la clave **`superclave`**, que también queda
+recordada en el navegador. Al llegar a cero la pantalla se desbloquea sola.
 
 ### Ajustes finos (opcional)
 

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 
+import { isAdminRequest } from "@/lib/presence/admin-key"
 import { presenceStore } from "@/lib/presence/store"
 
 export const runtime = "nodejs"
@@ -9,16 +10,12 @@ export const dynamic = "force-dynamic"
  * Snapshot del estado actual para el backoffice. El panel lo consulta por
  * polling cada pocos segundos (más robusto que SSE en Vercel serverless).
  *
- * Protección simple por clave compartida: si `ADMIN_KEY` está definida, hay que
- * pasar `?key=...` que coincida. Si no está definida (dev local), queda abierto.
+ * Protección simple por clave compartida: hay que pasar `?key=...` con la clave
+ * del panel (ver lib/presence/admin-key.ts).
  */
 export async function GET(request: Request) {
-  const adminKey = process.env.ADMIN_KEY
-  if (adminKey) {
-    const key = new URL(request.url).searchParams.get("key")
-    if (key !== adminKey) {
-      return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 })
-    }
+  if (!isAdminRequest(request)) {
+    return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 })
   }
 
   const groups = await presenceStore.list()

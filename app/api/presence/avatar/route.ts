@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 
+import { isAdminRequest } from "@/lib/presence/admin-key"
 import { presenceStore } from "@/lib/presence/store"
 
 export const runtime = "nodejs"
@@ -43,8 +44,7 @@ export async function POST(request: Request) {
  */
 export async function GET(request: Request) {
   const url = new URL(request.url)
-  const adminKey = process.env.ADMIN_KEY
-  if (adminKey && url.searchParams.get("key") !== adminKey) {
+  if (!isAdminRequest(request)) {
     return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 })
   }
 
