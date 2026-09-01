@@ -23,7 +23,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 
 // Ritmo del tipeo. Ajustables a mano si hace falta.
 const TYPE_SPEED_MS = 45 // ms por carácter
-const LINE_PAUSE_MS = 500 // pausa entre renglones (\n) del mismo globo
+const LINE_PAUSE_MS = 700 // pausa entre renglones (\n) del mismo globo
 
 // Respiro extra DESPUÉS de escribir un signo de puntuación (se suma como la
 // pausa que antes hacía solo la coma). Los signos de cierre (. ? !) frenan un
@@ -32,7 +32,7 @@ const PUNCTUATION_PAUSE_MS: Record<string, number> = {
   ",": 400,
   ";": 450,
   ":": 450,
-  ".": 500,
+  ".": 900,
   "?": 600,
   "!": 600,
 }
