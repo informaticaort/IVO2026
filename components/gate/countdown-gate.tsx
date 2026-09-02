@@ -12,7 +12,7 @@ import { LockKeyhole, ShieldAlert } from "lucide-react"
  * ---------------------------------------------------------------------- */
 
 /** Arranque de las IVO: 02/09/2026 a las 09:20 (hora local del dispositivo). */
-const UNLOCK_AT = new Date(2026, 8, 2, 9, 20, 0).getTime()
+const UNLOCK_AT = new Date(2026, 8, 3, 9, 20, 0).getTime()
 
 /** Clave de acceso anticipado (no distingue mayúsculas ni espacios sobrantes). */
 const EARLY_ACCESS_KEY = "superclave"
