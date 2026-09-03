@@ -22,23 +22,23 @@ import { useEffect, useMemo, useRef, useState } from "react"
  */
 
 // Ritmo del tipeo. Ajustables a mano si hace falta.
-const TYPE_SPEED_MS = 45 // ms por carácter
-const LINE_PAUSE_MS = 700 // pausa entre renglones (\n) del mismo globo
+const TYPE_SPEED_MS = 20 // ms por carácter
+const LINE_PAUSE_MS = 500 // pausa entre renglones (\n) del mismo globo
 
 // Respiro extra DESPUÉS de escribir un signo de puntuación (se suma como la
 // pausa que antes hacía solo la coma). Los signos de cierre (. ? !) frenan un
 // poco más que la coma. Editá o agregá caracteres a gusto.
 const PUNCTUATION_PAUSE_MS: Record<string, number> = {
-  ",": 400,
-  ";": 450,
-  ":": 450,
-  ".": 900,
-  "?": 600,
-  "!": 600,
+  ",": 300,
+  ";": 350,
+  ":": 350,
+  ".": 700,
+  "?": 500,
+  "!": 500,
 }
 // Cuánto se queda un globo ya escrito antes de borrarse/seguir, si no se
 // especificó una duración con [Ns].
-const DEFAULT_HOLD_MS = 1200
+const DEFAULT_HOLD_MS = 1100
 
 type Bubble = { lines: string[]; hold: number }
 
