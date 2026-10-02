@@ -12,7 +12,7 @@ import { LockKeyhole, ShieldAlert } from "lucide-react"
  * ---------------------------------------------------------------------- */
 
 /** Arranque de las IVO: 02/09/2026 a las 09:20 (hora local del dispositivo). */
-const UNLOCK_AT = new Date(2026, 8, 30, 10, 55, 0).getTime()
+const UNLOCK_AT = new Date(2027, 8, 30, 10, 55, 0).getTime()
 
 /** Clave de acceso anticipado (no distingue mayúsculas ni espacios sobrantes). */
 const EARLY_ACCESS_KEY = "superclave"
@@ -127,42 +127,7 @@ function LockedScreen({
             DE INFORMÁTICA
           </span>
         </h1>
-  {/* Cuenta regresiva hasta la apertura */}
-        <div
-          className="grid w-full max-w-2xl grid-cols-4 gap-2 sm:gap-3"
-          role="timer"
-          aria-live="off"
-        >
-          {bloques.map((b) => (
-            <div
-              key={b.label}
-              className="rounded-2xl border bg-[oklch(0.18_0.04_264/0.78)] px-2 py-4 backdrop-blur-sm sm:px-3 sm:py-5"
-              style={{
-                borderColor: `color-mix(in oklch, ${b.color} 35%, transparent)`,
-                boxShadow: `0 0 24px color-mix(in oklch, ${b.color} 18%, transparent)`,
-              }}
-            >
-              <p
-                className="font-pixel text-xl tabular-nums sm:text-3xl md:text-4xl"
-                style={{
-                  color: b.color,
-                  textShadow: `0 0 16px color-mix(in oklch, ${b.color} 60%, transparent)`,
-                }}
-              >
-                {String(b.value).padStart(2, "0")}
-              </p>
-              <p className="mt-2 font-mono text-[0.6rem] uppercase tracking-[0.24em] text-muted-foreground sm:text-xs">
-                {b.label}
-              </p>
-            </div>
-          ))}
-        </div>
-
-        <p className="mx-auto max-w-xl font-mono text-sm leading-relaxed text-muted-foreground">
-          El acceso se habilita el{" "}
-          <span className="text-foreground">02/09/2026 a las 09:20</span>. Hasta
-          entonces, la IA mantiene los laboratorios cerrados.
-        </p>
+ 
 
 
         {/* Acceso anticipado con clave */}
